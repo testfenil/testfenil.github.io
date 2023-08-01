@@ -1,6 +1,15 @@
 # testfenil.github.io
 
 
+// restart App
+
+     private void restartApp() {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        }
+
 // Progress drawable 
 
     <layer-list xmlns:android="http://schemas.android.com/apk/res/android">

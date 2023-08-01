@@ -1,5 +1,114 @@
 # testfenil.github.io
 
+// get all photos from storage
+
+          class PhotoFolderManager {
+              fun getAllImageFoldersWithFirstImage(context: Context): List<FolderMD> {
+                  val folderList = mutableListOf<FolderMD>()
+          
+                  val projection = arrayOf(
+                      MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+                      MediaStore.Images.Media.BUCKET_ID,
+                      MediaStore.Images.Media._ID
+                  )
+          
+                  val selection =
+                      "${MediaStore.Images.Media.MIME_TYPE} = ? OR ${MediaStore.Images.Media.MIME_TYPE} = ?"
+                  val selectionArgs = arrayOf("image/jpeg", "image/png")
+                  val sortOrder =
+                      "${MediaStore.Images.Media.BUCKET_DISPLAY_NAME} ASC, ${MediaStore.Images.Media.DATE_ADDED} ASC"
+          
+                  val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                  val contentResolver = context.contentResolver
+                  val cursor = contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
+          
+                  cursor?.use {
+                      val bucketNameColumn =
+                          it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+                      val bucketIdColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID)
+                      val imageIdColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+          
+                      val imageMap =
+                          mutableMapOf<String, Pair<Uri?, Int>>() // Pair<FirstImageUri, ImageCount>
+          
+                      while (it.moveToNext()) {
+                          val folderName = it.getString(bucketNameColumn)
+                          val folderId = it.getString(bucketIdColumn)
+                          val imageId = it.getLong(imageIdColumn)
+          
+                          val imageUri = Uri.withAppendedPath(
+                              MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                              imageId.toString()
+                          )
+          
+                          val (firstImageUri, imageCount) = imageMap.getOrPut(folderId) { Pair(imageUri, 0) }
+          
+                          if (firstImageUri == imageUri) {
+                              // Increment image count only for the first image in the folder
+                              imageMap[folderId] = Pair(firstImageUri, imageCount + 1)
+                          }
+                      }
+          
+                      // Create FolderMD objects with folderName, folderId, firstImageUri, and imageCount from the map
+                      for (entry in imageMap.entries) {
+                          val folderId = entry.key
+                          val (firstImageUri, _) = entry.value
+                          val folderName = getFolderNameById(context, folderId) ?: "Unknown Folder"
+                          val imageUris = getImagesInFolder(context, folderId)
+                          folderList.add(FolderMD(folderId, folderName, firstImageUri, imageUris))
+                      }
+                  }
+          
+                  return folderList
+              }
+          
+              private fun getFolderNameById(context: Context, folderId: String): String? {
+                  val projection = arrayOf(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+                  val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
+                  val selectionArgs = arrayOf(folderId)
+          
+                  val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                  val contentResolver = context.contentResolver
+                  val cursor = contentResolver.query(uri, projection, selection, selectionArgs, null)
+          
+                  cursor?.use {
+                      if (it.moveToFirst()) {
+                          return it.getString(it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                      }
+                  }
+          
+                  return null
+              }
+          
+              private fun getImagesInFolder(context: Context, folderId: String): ArrayList<Uri> {
+                  val imageList = ArrayList<Uri>()
+          
+                  val projection = arrayOf(MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA)
+          
+                  val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
+                  val selectionArgs = arrayOf(folderId)
+          
+                  val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                  val contentResolver = context.contentResolver
+                  val cursor = contentResolver.query(uri, projection, selection, selectionArgs, null)
+          
+                  cursor?.use {
+                      val imageIdColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+          
+                      while (it.moveToNext()) {
+                          val imageId = it.getLong(imageIdColumn)
+                          val imageUri = Uri.withAppendedPath(
+                              MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                              imageId.toString()
+                          )
+                          imageList.add(imageUri)
+                      }
+                  }
+          
+                  return imageList
+              }
+          }
+
 
 // restart App
 

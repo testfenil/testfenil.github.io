@@ -1,5 +1,172 @@
 # testfenil.github.io
 
+
+// get a bitmap alpha logic 
+
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#F4F4F4"
+        app:cardCornerRadius="@dimen/_8sdp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RelativeLayout
+            android:id="@+id/relative"
+            android:layout_width="@dimen/_300sdp"
+            android:layout_height="@dimen/_300sdp">
+
+            <ImageView
+                android:id="@+id/img1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/girl_2_filter"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/img2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/girl_2" />
+
+            <RelativeLayout
+                android:id="@+id/line"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:elevation="@dimen/_2sdp">
+
+                <View
+                    android:layout_width="@dimen/_2sdp"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:background="@color/white" />
+
+                <androidx.constraintlayout.utils.widget.ImageFilterView
+                    android:layout_width="@dimen/_28sdp"
+                    android:layout_height="@dimen/_28sdp"
+                    android:layout_centerInParent="true"
+                    android:src="@drawable/downloadline" />
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+              val originalBitmap =
+                          BitmapFactory.decodeResource(resources, com.example.artimind.R.drawable.girl_2)
+          
+                      val desiredWidth = relative.layoutParams.width
+                      val desiredHeight = relative.layoutParams.height
+          
+                      val resizedBitmap =
+                          Bitmap.createScaledBitmap(originalBitmap, desiredWidth, desiredHeight, true)
+          
+                      img2.setImageBitmap(resizedBitmap)
+          
+                      // ------ Sec Filter Image ---------
+          
+                      val originalBitmap2 = BitmapFactory.decodeResource(
+                          resources, com.example.artimind.R.drawable.girl_2_filter
+                      )
+          
+                      val desiredWidth2 = relative.layoutParams.width
+                      val desiredHeight2 = relative.layoutParams.height
+          
+                      val resizedBitmap2 =
+                          Bitmap.createScaledBitmap(originalBitmap2, desiredWidth2, desiredHeight2, true)
+          
+                      img1.setImageBitmap(resizedBitmap2)
+          
+                      ("Relative Width: " + relative.layoutParams.width + " | Height: ${relative.layoutParams.height}").log()
+          
+                      line.setOnTouchListener { v, event ->
+                          when (event.action) {
+                              MotionEvent.ACTION_DOWN -> lastX = event.rawX
+                              MotionEvent.ACTION_MOVE -> {
+                                  val deltaX = event.rawX - lastX
+                                  var newX = line.x + deltaX
+                                  // Prevent the line from going beyond the relative layout
+                                  if (newX < 0) {
+                                      newX = 0f
+                                  } else if (newX > relative.width - line.width) {
+                                      newX = (relative.width - line.width).toFloat()
+                                  }
+                                  line.x = newX
+                                  ("x: $newX").log()
+                                  resizedBitmap.makeAlpha(alphaEndWidth = (newX + 28).toInt(), img2 = img2)
+                                  lastX = event.rawX
+                              }
+          
+                              else -> {}
+                          }
+                          true
+                      }
+                  }
+                  
+                    
+                       //same work a two split view alpha 0
+                        fun Bitmap.makeAlpha(alphaStartWidth: Int = 0, alphaEndWidth: Int, img2: ImageView) {
+                            val modifiedBitmap = this.copy(Bitmap.Config.ARGB_8888, true)
+                    
+                            val alphaRange = alphaEndWidth - alphaStartWidth
+                            val alphaMultiplier = 0 / alphaRange.toFloat()
+                    
+                            val pixelArray = IntArray(modifiedBitmap.width * modifiedBitmap.height)
+                            modifiedBitmap.getPixels(
+                                pixelArray, 0, modifiedBitmap.width, 0, 0, modifiedBitmap.width, modifiedBitmap.height
+                            )
+                    
+                            for (x in alphaStartWidth until alphaEndWidth) {
+                                for (y in 0 until modifiedBitmap.height) {
+                                    val index = y * modifiedBitmap.width + x
+                                    val pixel = pixelArray[index]
+                                    val newAlpha = (Color.alpha(pixel) * alphaMultiplier).toInt()
+                                    val newPixel = Color.argb(
+                                        newAlpha, Color.red(pixel), Color.green(pixel), Color.blue(pixel)
+                                    )
+                                    pixelArray[index] = newPixel
+                                }
+                            }
+                    
+                            modifiedBitmap.setPixels(
+                                pixelArray, 0, modifiedBitmap.width, 0, 0, modifiedBitmap.width, modifiedBitmap.height
+                            )
+                            img2.setImageBitmap(modifiedBitmap)
+                        }
+                    
+                    
+                        //work a right and left full move view at time work
+                    
+                    //    fun Bitmap.makeAlpha(alphaStartWidth: Int = 0, alphaEndWidth: Int, img2: ImageView) {
+                    //        val alphaRange = alphaEndWidth - alphaStartWidth
+                    //        val colorMatrix = ColorMatrix()
+                    //
+                    //        val alphaMultiplier = 255f / alphaRange.toFloat() // Scale alpha based on the range
+                    //
+                    //        // Adjust the alpha channel using the color matrix
+                    //        colorMatrix.setScale(1f, 1f, 1f, alphaMultiplier)
+                    //
+                    //        // Apply the color matrix to the image
+                    //        val filteredBitmap = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.ARGB_8888)
+                    //        val canvas = Canvas(filteredBitmap)
+                    //        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+                    //        paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+                    //        canvas.drawBitmap(this, 0f, 0f, paint)
+                    //
+                    //        img2.setImageBitmap(filteredBitmap)
+                    //    }
+
+
 // get all photos from storage
 
           class PhotoFolderManager {

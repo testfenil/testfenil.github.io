@@ -186,6 +186,42 @@
                     //    }
 
 
+          // with the help of onBound keyurbhai 
+
+           imageView1 = findViewById(R.id.imageView1);
+        imageView2 = findViewById(R.id.imageView2);
+        separator = findViewById(R.id.separator);
+
+        separator.post(new Runnable() {
+            @Override
+            public void run() {
+                initialSeparatorX = separator.getX();
+            }
+        });
+
+        imageView1.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        initialX = event.getX();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        float deltaX = event.getX() - initialX;
+                        float newSeparatorX = initialSeparatorX + deltaX;
+
+                        if (newSeparatorX >= 0 && newSeparatorX <= imageView1.getWidth() - separator.getWidth()) {
+                            separator.setX(newSeparatorX);
+                            float ratio = newSeparatorX / (imageView1.getWidth() - separator.getWidth());
+                            imageView2.setClipBounds(new Rect((int) (imageView2.getWidth() * ratio), 0, imageView2.getWidth(), imageView2.getHeight()));
+                        }
+                        break;
+                }
+                return true;
+            }
+        });
+
+
 // get all photos from storage
 
           class PhotoFolderManager {

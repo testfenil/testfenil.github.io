@@ -1,23 +1,202 @@
 # testfenil.github.io
 
+// Keyur bhai bottomsheeet
+
+
+        class CustomBottomSheetFragment : BottomSheetDialogFragment() {
+            lateinit var binding: BottomDialogBinding
+            private var shouldInterceptTouch = false
+            private var deviceHeight = 0f
+        
+            @SuppressLint("ClickableViewAccessibility")
+            override fun onStart() {
+                super.onStart()
+                val behavior: BottomSheetBehavior<*> =
+                    BottomSheetBehavior.from(requireView().parent as View)
+        
+                behavior.isDraggable = false;
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                var peekHeight = (resources.displayMetrics.heightPixels / 2)
+                var peekHeightFull = (resources.displayMetrics.heightPixels)
+        
+                ("Total Height: $peekHeightFull | ${peekHeight}").log()
+        
+                dialog!!.window!!.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, peekHeight);
+                dialog!!.window!!.setGravity(Gravity.BOTTOM)
+        
+        
+                var initialY = peekHeightFull.toFloat()
+                val layoutParams = dialog!!.window!!.attributes
+        
+                binding.card.setOnTouchListener(object : OnTouchListener {
+                    override fun onTouch(v: View?, event: MotionEvent): Boolean {
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                initialY = event.rawY
+                                return true
+                            }
+        
+                            MotionEvent.ACTION_MOVE -> {
+                                val deltaY = initialY - event.rawY
+        //                        ("Y: $deltaY").log()
+        
+                                if (deltaY > 0 && layoutParams.height <= (peekHeightFull - 60)) {
+                                    // Scrolling up
+                                    if (deltaY > 5) {
+                                        layoutParams.height = (layoutParams.height + deltaY).toInt()
+                                        dialog!!.window!!.attributes = layoutParams
+                                    }
+                                } else if (deltaY < 0 && layoutParams.height >= peekHeight) {
+                                    // Scrolling down
+                                    if (-deltaY > 5) {
+                                        layoutParams.height = (layoutParams.height + deltaY).toInt()
+                                        dialog!!.window!!.attributes = layoutParams
+                                    } else if (-deltaY > deviceHeight / 2) {
+                                        // Dismiss the dialog when scrolling down beyond half of the device's height
+                                        if (((peekHeightFull / 2) + 300) >= layoutParams.height) {
+                                            ("DISSMISS: ${layoutParams.height}").log()
+                                            dismiss()
+                                        }
+                                    }
+                                }
+        
+                                initialY = event.rawY
+                                return true
+                            }
+        
+                            MotionEvent.ACTION_UP -> {
+                                initialY = 0f
+                                return true
+                            }
+                        }
+                        return false
+                    }
+                })
+            }
+        
+            @SuppressLint("ResourceAsColor", "ClickableViewAccessibility")
+            override fun onCreateView(
+                inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+            ): View {
+                binding = BottomDialogBinding.inflate(layoutInflater)
+                binding.apply {
+                    rv.adapter = RVItemAdapter(requireActivity())
+        
+                }
+        
+                return binding.root
+            }
+        
+        
+            fun setShouldInterceptTouch(shouldIntercept: Boolean) {
+                this.shouldInterceptTouch = shouldIntercept;
+            }
+        }
+
+
+        
+
 // get All videos from storage
     
-    @SuppressLint("Range")
-    fun retrieveVideos(activity: Activity): ArrayList<String> {
-        var list: ArrayList<String> = arrayListOf()
-        val projection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DATA)
-        val cursor: Cursor? = activity.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI, projection, null, null, null
-        )
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                val videoPath = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA))
-                list.add(videoPath)
+            @SuppressLint("Range")
+            fun retrieveVideos(activity: Activity): ArrayList<String> {
+                var list: ArrayList<String> = arrayListOf()
+                val projection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DATA)
+                val cursor: Cursor? = activity.contentResolver.query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, projection, null, null, null
+                )
+                if (cursor != null) {
+                    while (cursor.moveToNext()) {
+                        val videoPath = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA))
+                        list.add(videoPath)
+                    }
+                    cursor.close()
+                }
+                return list
             }
-            cursor.close()
-        }
-        return list
-    }
+        
+        
+             //xml
+        
+             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:gravity="bottom"
+            android:orientation="vertical">
+        
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="@dimen/_12sdp">
+        
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+        
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+        
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:clickable="false"
+                            android:gravity="center"
+                            android:padding="@dimen/_5sdp">
+        
+                            <androidx.constraintlayout.utils.widget.ImageFilterView
+                                android:id="@+id/nextbtn"
+                                android:layout_width="@dimen/_40sdp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_margin="@dimen/_10sdp"
+                                android:background="@color/black"
+                                android:clickable="false"
+                                android:contextClickable="false"
+                                android:gravity="center"
+                                android:padding="@dimen/_2sdp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:round="@dimen/_30sdp" />
+        
+                        </LinearLayout>
+        
+                    </androidx.cardview.widget.CardView>
+        
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/_3sdp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        tools:itemCount="5"
+                        tools:listitem="@layout/rv_item" />
+                </LinearLayout>
+        
+            </androidx.cardview.widget.CardView>
+        
+        </LinearLayout>
+
+
+      // Click
+       btn.setOnClickListener {
+                val bottomSheetFragment = CustomBottomSheetFragment()
+                bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
+                bottomSheetFragment.setShouldInterceptTouch(true)
+
+            }
+
 
 
 // get a bitmap alpha logic 

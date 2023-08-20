@@ -1,5 +1,24 @@
 # testfenil.github.io
 
+// get All videos from storage
+    
+    @SuppressLint("Range")
+    fun retrieveVideos(activity: Activity): ArrayList<String> {
+        var list: ArrayList<String> = arrayListOf()
+        val projection = arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DATA)
+        val cursor: Cursor? = activity.contentResolver.query(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI, projection, null, null, null
+        )
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                val videoPath = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA))
+                list.add(videoPath)
+            }
+            cursor.close()
+        }
+        return list
+    }
+
 
 // get a bitmap alpha logic 
 

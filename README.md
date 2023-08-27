@@ -1,5 +1,77 @@
 # testfenil.github.io
 
+// comparas bitmap size 512
+
+           Glide.with(this).asBitmap().diskCacheStrategy(DiskCacheStrategy.NONE).load(imageUrl)
+                    .into(object : CustomTarget<Bitmap?>() {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: com.bumptech.glide.request.transition.Transition<in Bitmap?>?
+                        ) {
+                            onBackground {
+        
+                                val desiredWidth = 512 // Adjust desired dimensions as needed
+        
+                                val desiredHeight = 512
+        
+                                val resizedBitmap = Bitmap.createScaledBitmap(
+                                    resource, desiredWidth, desiredHeight, false
+                                )
+        
+                                val myDir = File(cacheDir.toURI())
+                                if (!myDir.exists()) myDir.mkdirs()
+                                val file = File(myDir, "croped_kb.jpeg")
+                                if (file.exists()) file.delete()
+                                try {
+                                    val out = FileOutputStream(file)
+                                    resizedBitmap.compress(
+                                        Bitmap.CompressFormat.JPEG, 30, out
+                                    )
+                                    out.flush()
+                                    out.close()
+                                } catch (e: Exception) {
+                                    (e.message!!).log()
+                                }
+        
+                                ("Size: " + getFileSize(file.length()) + " | W: ${resizedBitmap.width} | H: ${resizedBitmap.height}").log()
+        
+                                ("Bitmap Genrated: ${file.path}").log()
+        
+                                val requestBody =
+                                    RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file)
+                                val filePart: MultipartBody.Part =
+                                    MultipartBody.Part.createFormData("image", file.name, requestBody)
+                                val promypart =
+                                    RequestBody.create("text/plain".toMediaTypeOrNull(), promtext)
+        
+                                try {
+                                    ApiCaller().makeApiCall(filePart, promypart, object : onResponce {
+                                        override fun <T> onSuccess(res: T) {
+                                            resbody = res as ResModel
+                                            DataHolder.largeData = resbody.data
+                                            runOnUiThread {
+                                                if (!isDestroyed) {
+                                                    bind.miraclloading.gon()
+                                                    bind.doneconstraint.visible()
+                                                }
+                                            }
+                                        }
+        
+                                        override fun onError(error: String) {
+                                            ("onError: ").log()
+                                        }
+                                    })
+        
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    "API call crashed with exception: ${e.message}".log()
+                                }
+                            }
+                        }
+        
+                        override fun onLoadCleared(@Nullable placeholder: Drawable?) {}
+                    })
+
 // Shimmer Layout
 
         

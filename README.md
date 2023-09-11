@@ -4846,7 +4846,68 @@
         printStackTrace()
         "$message | ${javaClass.name}".log()
     }
-   }
+              }
+              
+           fun AppCompatActivity.onBack() = onBackPressedDispatcher.onBackPressed()
+           
+           inline fun View.click(crossinline click: () -> Unit) {
+               this.setOnClickListener {
+                   click()
+               }
+           }
+
+           
+           fun View.handAnim() {
+               val zoomIn: Animation = ScaleAnimation(
+                   1f, 1.2f,  // Start and end values for the X axis scaling
+                   1f, 1.2f,  // Start and end values for the Y axis scaling
+                   Animation.RELATIVE_TO_SELF, 0.5f,  // Pivot point of X scaling
+                   Animation.RELATIVE_TO_SELF, 0.5f
+               ) // Pivot point of Y scaling
+           
+               zoomIn.duration = 200
+           
+               val zoomOut: Animation = ScaleAnimation(
+                   1.2f, 1f,  // Start and end values for the X axis scaling
+                   1.2f, 1f,  // Start and end values for the Y axis scaling
+                   Animation.RELATIVE_TO_SELF, 0.5f,  // Pivot point of X scaling
+                   Animation.RELATIVE_TO_SELF, 0.5f
+               ) // Pivot point of Y scaling
+           
+               zoomOut.duration = 200
+               zoomOut.startOffset = 200 // Delay the zoom out animation
+               zoomOut.repeatCount = 10000
+           
+               zoomIn.setAnimationListener(object : Animation.AnimationListener {
+                   override fun onAnimationStart(animation: Animation) {}
+                   override fun onAnimationEnd(animation: Animation) {
+                       startAnimation(zoomOut) // Start zoom out animation after zoom in
+                   }
+           
+                   override fun onAnimationRepeat(animation: Animation) {}
+               })
+           
+               startAnimation(zoomIn)
+           }
+           
+           
+           fun View.clearAnim() {
+               clearAnimation()
+           }
+
+
+                      fun View.flipanimdelay(delay: Long) {
+    val animator: ObjectAnimator = ObjectAnimator.ofPropertyValuesHolder(
+        this,
+        PropertyValuesHolder.ofFloat(View.ROTATION_Y, 0f, 360f)
+    )
+    animator.duration = delay
+               animator.interpolator = AccelerateDecelerateInterpolator()
+               animator.start()
+           }
+
+
+           inline fun <reified T> String.fromJSON() = Gson().fromJson<T>(this, object : TypeToken<T>() {}.type)
 
       fun <T> T.toGson(): String = gson.toJson(this)
 

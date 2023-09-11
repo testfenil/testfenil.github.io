@@ -1,5 +1,71 @@
 # testfenil.github.io
 
+// Reverse Timer CountDown
+
+           var totalTimeInMillis = (30 * 60000).toLong()
+
+        timerObj = object : CountDownTimer(totalTimeInMillis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                runningMilisec = millisUntilFinished
+                val hours = millisUntilFinished / (60 * 60 * 1000)
+                val minutesRemaining = (millisUntilFinished / 1000).toInt() / 60
+                val secondsRemaining = (millisUntilFinished / 1000).toInt() % 60
+                val countdownText =
+                    String.format("%02d:%02d:%02d", hours, minutesRemaining, secondsRemaining)
+                ("Apk Class Timer: $countdownText").log()
+                timerTv = countdownText
+            }
+
+            override fun onFinish() {
+                exc {
+                    timerTv = "00:00:00"
+                    isRunningVpnGloble = false
+                    ("On Finish in Timer Counter").log()
+                    cancel()
+                    MessageUtil.sendMsg(
+                        applicationContext,
+                        AppConfig.BROADCAST_ACTION_SERVICE,
+                        AppConfig.MSG_STATE_STOP,
+                        ""
+                    )
+                }
+            }
+        }
+
+// DrawerLayout & NavigationView
+
+           <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+               xmlns:tools="http://schemas.android.com/tools"
+               android:layout_width="wrap_content"
+               android:layout_height="match_parent"
+               android:layout_gravity="start|top"
+               android:backgroundTint="#10161F"
+               tools:context=".Activity.MainActivity">
+           
+               <include
+                   android:id="@+id/includeID"
+                   layout="@layout/main_act_layout"
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent" />
+           
+               <com.google.android.material.navigation.NavigationView
+                   android:id="@+id/navview"
+                   android:layout_width="wrap_content"
+                   android:layout_height="match_parent"
+                   android:layout_gravity="start"
+                   android:backgroundTint="#10161F"
+                   android:fitsSystemWindows="true" />
+           
+           </androidx.drawerlayout.widget.DrawerLayout>
+
+
+           
+             val navHeaderMainBinding: NavheaderLayoutBinding = NavheaderLayoutBinding.inflate(
+                       layoutInflater
+                   )
+                   bind.navview.addHeaderView(navHeaderMainBinding.root)
+           
+
 // comparas bitmap size 512
 
            Glide.with(this).asBitmap().diskCacheStrategy(DiskCacheStrategy.NONE).load(imageUrl)

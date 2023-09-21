@@ -1,5 +1,1095 @@
 # testfenil.github.io
 
+// Ads Loaded Class
+
+            //Addmob Ads
+               implementation 'com.google.android.gms:play-services-ads:22.3.0'
+               implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+               implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.6.1"
+           
+               //Swipe to Refresh
+               implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
+           
+               //Shimmer
+               implementation 'io.supercharge:shimmerlayout:2.1.0'
+               
+           
+            <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+               <uses-permission android:name="android.permission.INTERNET" />
+
+
+                   <meta-data
+            android:name="com.google.android.gms.ads.AD_MANAGER_APP"
+            android:value="true" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+
+           
+                       public class AdsManager {
+               private interface CallBackAds {
+                   void onNext();
+               }
+           
+               public static AdsManager mInstance;
+               private InterstitialAd mInterstitialAd;
+               public boolean isLoading = false;
+           
+               public static AdsManager getInstance() {
+                   if (mInstance == null) {
+                       mInstance = new AdsManager();
+                       AdsManager.getInstance().loadInterstitialAd();
+                   }
+                   return mInstance;
+               }
+           
+               public void loadInterstitialAd() {
+                   @SuppressLint("VisibleForTests") AdRequest adRequest = new AdRequest.Builder().build();
+                   if (mInterstitialAd == null && !isLoading) {
+                       log("load inter req sent");
+                       isLoading = true;
+                       InterstitialAd.load(Objects.requireNonNull(MyApplication.Companion.getMainInstance()), INTERN_UNIT_ID, adRequest, new InterstitialAdLoadCallback() {
+                           @Override
+                           public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                               log("loaded");
+                               mInterstitialAd = interstitialAd;
+                               isLoading = false;
+                           }
+           
+                           @Override
+                           public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                               log("onAdFailedToLoad");
+                               mInterstitialAd = null;
+                               isLoading = false;
+           //                    loadInterstitialAd();
+                           }
+                       });
+                   } else {
+                       log("Internet error");
+                   }
+               }
+           
+               public void setAmInternNull() {
+                   mInterstitialAd = null;
+               }
+           
+               public boolean showAdmobInterstitialAd(Activity activity, FullScreenContentCallback contentCallback) {
+                   try {
+                       if (mInterstitialAd != null) {
+                           log("is Show Ads");
+                           mInterstitialAd.show(activity);
+                           mInterstitialAd.setFullScreenContentCallback(contentCallback);
+                           return false;
+                       } else {
+                           contentCallback.onAdDismissedFullScreenContent();
+                           log("The interstitial ad wasn't ready yet.");
+                           return true;
+                       }
+                   } catch (Exception ignored) {
+                       return true;
+                   }
+               }
+           
+               public boolean loadOrShowAdmInterstial(Activity activity, FullScreenContentCallback mAdsCallBack) {
+                   return showAdmobInterstitialAd(activity, mAdsCallBack);
+               }
+           
+               @Override
+               public int hashCode() {
+                   return super.hashCode();
+               }
+           
+               public void _intrestial(Activity activity, CallBackAds callBackAds) {
+                   if (loadOrShowAdmInterstial(activity, new FullScreenContentCallback() {
+                       @Override
+                       public void onAdDismissedFullScreenContent() {
+                           super.onAdDismissedFullScreenContent();
+                           AdsManager.getInstance().setAmInternNull();
+                           AdsManager.getInstance().loadInterstitialAd();
+                           log("OnAds Diss");
+                           callBackAds.onNext();
+                       }
+           
+                       @Override
+                       public void onAdClicked() {
+                           super.onAdClicked();
+                           log("Intern Ads Click");
+                       }
+           
+                       @Override
+                       public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                           super.onAdFailedToShowFullScreenContent(adError);
+                           AdsManager.getInstance().setAmInternNull();
+                           AdsManager.getInstance().loadInterstitialAd();
+                           log("OnAds Failed");
+                           callBackAds.onNext();
+                       }
+                   })) {
+                       log("Here Main");
+                   }
+               }
+           }
+
+
+
+           ------
+
+                      
+           public class AppOpen implements LifecycleObserver, Application.ActivityLifecycleCallbacks {
+               private static boolean isShowingAd = false;
+               private AppOpenAd appOpenAd = null;
+               private AppOpenAd.AppOpenAdLoadCallback loadCallback;
+               private final MyApplication myApplication;
+               private Activity currentActivity;
+               public CallBackOpen mCallBackOpen;
+               public OpenadsLoaded mOpenadsLoaded;
+           
+               public AppOpen(MyApplication myManager) {
+                   this.myApplication = myManager;
+                   myApplication.registerActivityLifecycleCallbacks(this);
+                   ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
+               }
+           
+               public interface CallBackOpen {
+                   void callback();
+               }
+           
+               public interface OpenadsLoaded {
+                   void callbackloaded();
+               }
+           
+               @OnLifecycleEvent(ON_START)
+               public void onStart() {
+                   showAdIfAvailable();
+               }
+           
+               public void removeAppOpen() {
+                   AppOpen.this.appOpenAd = null;
+                   isShowingAd = false;
+               }
+           
+               public void fetchAd() {
+                   loadCallback = new AppOpenAd.AppOpenAdLoadCallback() {
+                       @Override
+                       public void onAdLoaded(AppOpenAd ad) {
+                           log("onAdLeoaded | Status: ");
+                           AppOpen.this.appOpenAd = ad;
+                           try {
+                               mOpenadsLoaded.callbackloaded();
+                           } catch (Exception ignored) {
+           
+                           }
+                       }
+           
+                       @Override
+                       public void onAdFailedToLoad(LoadAdError loadAdError) {
+                           log("onAdFailedToLoad | Status: ");
+                           try {
+                               mCallBackOpen.callback();
+                           } catch (Exception e) {
+                               mCallBackOpen.callback();
+                               log("Error Fetch Ads: " + e.getMessage());
+                           }
+                       }
+           
+                   };
+                   AdRequest request = getAdRequest();
+           
+                   log("o1 Load: ");
+           
+                   AppOpenAd.load(myApplication, APPOPEN_UNIT_ID, request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, loadCallback);
+               }
+           
+               @SuppressLint("VisibleForTests")
+               private AdRequest getAdRequest() {
+                   return new AdRequest.Builder().build();
+               }
+           
+               public boolean isAdAvailable() {
+                   return appOpenAd != null;
+               }
+           
+               public void showAdIfAvailable() {
+                   if (!isShowingAd && isAdAvailable()) {
+                       FullScreenContentCallback fullScreenContentCallback = new FullScreenContentCallback() {
+                           @Override
+                           public void onAdDismissedFullScreenContent() {
+                               try {
+                                   mCallBackOpen.callback();
+                               } catch (Exception e) {
+                                   print(e);
+                               }
+                               AppOpen.this.appOpenAd = null;
+                               isShowingAd = false;
+                               fetchAd();
+                           }
+           
+                           @Override
+                           public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                               try {
+                                   mCallBackOpen.callback();
+                               } catch (Exception e) {
+                                   print(e);
+                               }
+                           }
+           
+                           @Override
+                           public void onAdShowedFullScreenContent() {
+                               isShowingAd = true;
+                           }
+                       };
+           
+                       appOpenAd.setFullScreenContentCallback(fullScreenContentCallback);
+                       appOpenAd.show(currentActivity);
+           
+                   } else {
+                       fetchAd();
+                   }
+               }
+           
+               @Override
+               public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+               }
+           
+               @Override
+               public void onActivityStarted(Activity activity) {
+           //        log("onActivityStarted");
+                   if (!isShowingAd) currentActivity = activity;
+               }
+           
+               @Override
+               public void onActivityResumed(Activity activity) {
+           //        log("onActivityResumed");
+                   currentActivity = activity;
+               }
+           
+               @Override
+               public void onActivityStopped(Activity activity) {
+           //        log("onActivityStopped");
+               }
+           
+               @Override
+               public void onActivityPaused(Activity activity) {
+           //        log("onActivityPaused");
+           
+               }
+           
+               @Override
+               public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+               }
+           
+               @Override
+               public void onActivityDestroyed(Activity activity) {
+                   currentActivity = null;
+               }
+           }
+
+
+       -------------
+
+
+                             
+                      private var active: Boolean = true
+                      
+                      fun loadAppOpen(activity: Activity, onNext: () -> Unit) {
+                          if (IS_ADS_NOT_SHOW) onNext()
+                          else {
+                              MyApplication.appOpenManager = AppOpen(MyApplication.getMainInstance() as MyApplication?)
+                              MyApplication.appOpenManager?.mOpenadsLoaded = AppOpen.OpenadsLoaded {
+                                  ("OnStart").log()
+                                  if (!activity.isDestroyed && active) {
+                                      MyApplication.appOpenManager?.onStart()
+                                  }
+                              }
+                      
+                              MyApplication.appOpenManager?.mCallBackOpen = AppOpen.CallBackOpen {
+                                  active = false
+                                  ("AppOpen.CallBackOpen").log()
+                                  if (!activity.isDestroyed) {
+                                      onNext()
+                                  }
+                              }
+                          }
+                      }
+                      
+                      
+                      fun loadInterAddmobAds(activity: Activity, onNext: () -> Unit) {
+                          clickCount++
+                      
+                          if (IS_ADS_NOT_SHOW) onNext()
+                          else if (clickCount % 2 == 0) {
+                              AdsManager.getInstance()._intrestial(activity) {
+                                  onNext()
+                              }
+                          } else onNext()
+                      }
+                      
+                      interface RewardAdsCallback {
+                          fun onAdsDismissClick()
+                          fun onFullShowAds()
+                      }
+                      
+                      fun loadRewardAds(activity: Activity, onRewardCallBack: RewardAdsCallback) {
+                          if (IS_ADS_NOT_SHOW) onRewardCallBack.onAdsDismissClick()
+                          else RewardAds(activity) {
+                              it.log()
+                              when (it) {
+                                  "onAdsFullShow" -> {
+                                      onRewardCallBack.onFullShowAds()
+                                  }
+                      
+                                  "onAddDismiss" -> {
+                                      onRewardCallBack.onAdsDismissClick()
+                                  }
+                      
+                                  "onAddFail" -> {
+                                      onRewardCallBack.onAdsDismissClick()
+                                  }
+                              }
+                          }.load()
+                      }
+                      
+                      var adsNativesmall: NativeAd? = null
+                      var bodysmall: String = ""
+                      
+                      var adsNativebig: NativeAd? = null
+                      var bodybig: String = ""
+                      
+                      @SuppressLint("VisibleForTests", "InflateParams")
+                      fun loadAddmobNativeBigAds(
+                          activity: Activity, root: ViewGroup, layout_id: Int
+                      ) {
+                          if (adsNativebig?.body == bodybig && bodybig.isNotBlank()) {
+                              val adView = activity.layoutInflater.inflate(layout_id, null) as NativeAdView
+                              populateNativeBigAdView(adsNativebig!!, adView)
+                              root.removeAllViews()
+                              root.addView(adView)
+                          }
+                      
+                          val builder = AdLoader.Builder(
+                              activity, NATIVE_UNIT_ID
+                          ).forNativeAd { nativeAd ->
+                              adsNativebig = nativeAd
+                              bodybig = adsNativebig!!.body ?: ""
+                              if (root.childCount == 1) {
+                                  val adView = activity.layoutInflater.inflate(layout_id, null) as NativeAdView
+                                  populateNativeBigAdView(nativeAd, adView)
+                                  root.removeAllViews()
+                                  root.addView(adView)
+                              }
+                          }
+                          val adLoader = builder.withAdListener(object : AdListener() {
+                              override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                                  ("Ad Big Native Failed").log()
+                                  root.removeAllViews()
+                              }
+                      
+                              override fun onAdClicked() {
+                                  super.onAdClicked()
+                                  ("Big Native Ads Click").log()
+                              }
+                      
+                          }).build()
+                          adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
+                      }
+                      
+                      fun populateNativeBigAdView(nativeAd: NativeAd, adView: NativeAdView) {
+                          adView.mediaView = adView.findViewById<View>(R.id.ad_media) as MediaView
+                          adView.headlineView = adView.findViewById(R.id.ad_headline)
+                          adView.bodyView = adView.findViewById(R.id.ad_body)
+                          adView.callToActionView = adView.findViewById(R.id.ad_call_to_action)
+                          adView.iconView = adView.findViewById(R.id.ad_app_icon)
+                          adView.priceView = adView.findViewById(R.id.ad_price)
+                          adView.starRatingView = adView.findViewById(R.id.ad_stars)
+                          adView.storeView = adView.findViewById(R.id.ad_store)
+                          adView.advertiserView = adView.findViewById(R.id.ad_advertiser)
+                          (adView.headlineView as TextView).text = nativeAd.headline
+                          nativeAd.mediaContent?.let { adView.mediaView?.setMediaContent(it) }
+                      
+                          if (nativeAd.body == null) {
+                              adView.bodyView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.bodyView!!.visibility = View.VISIBLE
+                              (adView.bodyView as TextView).text = nativeAd.body
+                          }
+                          if (nativeAd.callToAction == null) {
+                              adView.callToActionView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.callToActionView!!.visibility = View.VISIBLE
+                              (adView.callToActionView as Button).text = "OPEN"
+                          }
+                          if (nativeAd.icon == null) {
+                              adView.iconView!!.visibility = View.GONE
+                          } else {
+                              (adView.iconView as ImageView).setImageDrawable(nativeAd.icon!!.drawable)
+                              adView.iconView!!.visibility = View.VISIBLE
+                          }
+                          if (nativeAd.price == null) {
+                              adView.priceView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.priceView!!.visibility = View.VISIBLE
+                              (adView.priceView as TextView).text = nativeAd.price
+                          }
+                          if (nativeAd.store == null) {
+                              adView.storeView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.storeView!!.visibility = View.VISIBLE
+                              (adView.storeView as TextView).text = nativeAd.store
+                          }
+                          if (nativeAd.starRating == null) {
+                              adView.starRatingView!!.visibility = View.INVISIBLE
+                          } else {
+                              (adView.starRatingView as RatingBar).rating = nativeAd.starRating!!.toFloat()
+                              adView.starRatingView!!.visibility = View.VISIBLE
+                          }
+                          if (nativeAd.advertiser == null) {
+                              adView.advertiserView!!.visibility = View.INVISIBLE
+                          } else {
+                              (adView.advertiserView as TextView).text = nativeAd.advertiser
+                              adView.advertiserView!!.visibility = View.VISIBLE
+                          }
+                          adView.setNativeAd(nativeAd)
+                          nativeAd.mediaContent?.videoController
+                      }
+                      
+                      @SuppressLint("VisibleForTests", "InflateParams")
+                      fun loadNativeAdmobSmallAds(activity: Activity, root: ViewGroup, ad_id: Int) {
+                          if (adsNativesmall?.body == bodysmall && bodysmall.isNotBlank()) {
+                              val adView = activity.layoutInflater.inflate(ad_id, null) as NativeAdView
+                              populateNativeAdViewsmall(adsNativesmall!!, adView)
+                              ("Remove Views").log()
+                              root.removeAllViews()
+                              root.addView(adView)
+                          }
+                      
+                          val builder = AdLoader.Builder(
+                              activity, NATIVE_UNIT_ID
+                          ).forNativeAd { nativeAd ->
+                              adsNativesmall = nativeAd
+                              bodysmall = adsNativesmall!!.body ?: ""
+                      
+                              if (root.childCount == 1) {
+                                  val adView = activity.layoutInflater.inflate(
+                                      R.layout.ad_native_small, null
+                                  ) as NativeAdView
+                                  populateNativeAdViewsmall(nativeAd, adView)
+                                  root.removeAllViews()
+                                  ("Remove Views 1111").log()
+                                  root.addView(adView)
+                              }
+                          }
+                          val adLoader = builder.withAdListener(object : AdListener() {
+                              override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                      //            loadNativeAdmobSmallAds(activity, root, ad_id)
+                                  root.removeAllViews()
+                              }
+                      
+                              override fun onAdClicked() {
+                                  super.onAdClicked()
+                                  ("Small Native Ads Click").log()
+                              }
+                      
+                          }).build()
+                          adLoader.loadAd(AdRequest.Builder().build())
+                      }
+                      
+                      fun populateNativeAdViewsmall(nativeAd: NativeAd, adView: NativeAdView) {
+                          adView.headlineView = adView.findViewById(R.id.ad_headline)
+                          adView.bodyView = adView.findViewById(R.id.ad_body)
+                          adView.callToActionView = adView.findViewById(R.id.ad_call_to_action)
+                          adView.iconView = adView.findViewById(R.id.ad_app_icon)
+                          adView.priceView = adView.findViewById(R.id.ad_price)
+                          adView.starRatingView = adView.findViewById(R.id.ad_stars)
+                          adView.storeView = adView.findViewById(R.id.ad_store)
+                          adView.advertiserView = adView.findViewById(R.id.ad_advertiser)
+                          (adView.headlineView as TextView).text = nativeAd.headline
+                          if (nativeAd.body == null) {
+                              adView.bodyView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.bodyView!!.visibility = View.VISIBLE
+                              (adView.bodyView as TextView).text = nativeAd.body
+                          }
+                          if (nativeAd.callToAction == null) {
+                              adView.callToActionView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.callToActionView!!.visibility = View.VISIBLE
+                              (adView.callToActionView as Button).text = "OPEN"
+                          }
+                          if (nativeAd.icon == null) {
+                              adView.iconView!!.visibility = View.GONE
+                          } else {
+                              (adView.iconView as ImageView).setImageDrawable(nativeAd.icon!!.drawable)
+                              adView.iconView!!.visibility = View.VISIBLE
+                          }
+                          if (nativeAd.price == null) {
+                              adView.priceView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.priceView!!.visibility = View.VISIBLE
+                              (adView.priceView as TextView).text = nativeAd.price
+                          }
+                          if (nativeAd.store == null) {
+                              adView.storeView!!.visibility = View.INVISIBLE
+                          } else {
+                              adView.storeView!!.visibility = View.VISIBLE
+                              (adView.storeView as TextView).text = nativeAd.store
+                          }
+                          if (nativeAd.starRating == null) {
+                              adView.starRatingView!!.visibility = View.INVISIBLE
+                          } else {
+                              (adView.starRatingView as RatingBar).rating = nativeAd.starRating!!.toFloat()
+                              adView.starRatingView!!.visibility = View.VISIBLE
+                          }
+                          if (nativeAd.advertiser == null) {
+                              adView.advertiserView!!.visibility = View.INVISIBLE
+                          } else {
+                              (adView.advertiserView as TextView).text = nativeAd.advertiser
+                              adView.advertiserView!!.visibility = View.VISIBLE
+                          }
+                      
+                          adView.setNativeAd(nativeAd)
+                      }
+                      
+                      
+                      fun loadBannerAds(ctx: Context, v: ViewGroup) {
+                          val adView = AdManagerAdView(ctx)
+                      
+                          val builder: AdRequest.Builder = AdRequest.Builder()
+                          val extras = Bundle()
+                      
+                          adView.setAdSizes(AdSize.BANNER)
+                          adView.adUnitId = BANNER_UNIT_ID
+                          adView.layoutParams = ViewGroup.LayoutParams(
+                              ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                          )
+                          extras.putString("collapsible", "bottom")
+                          builder.addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+                          adView.loadAd(builder.build())
+                      
+                          adView.adListener = object : AdListener() {
+                              override fun onAdFailedToLoad(adError: LoadAdError) {
+                                  ("Reload Banner Ads").log()
+                      //            loadBannerAds(ctx, v)
+                                  v.removeAllViews()
+                              }
+                      
+                              override fun onAdLoaded() {
+                                  super.onAdLoaded()
+                                  v.removeAllViews()
+                                  v.addView(adView)
+                                  ("AD Loaded Banner").log()
+                              }
+                          }
+                      }
+
+
+           --------------
+
+
+           
+           
+           class RewardAds(var activity: Activity, var onAdsClick: (String) -> Unit) {
+               private val AD_UNIT_ID = REWARD_ADS
+               private var isLoading: Boolean = false
+               private var rewardedAds: RewardedAd? = null
+               var adRequest: AdRequest = AdRequest.Builder().build()
+               var progressBar: RewardAdsDialog = RewardAdsDialog(activity)
+           
+               fun load() {
+                   if (rewardedAds == null) {
+                       progressBar.show()
+                       isLoading = true
+           
+                       RewardedAd.load(activity, AD_UNIT_ID, adRequest, object : RewardedAdLoadCallback() {
+                           override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                               // Handle the error.
+                               (("Load Reward Ads: " + loadAdError.message)).log()
+                               rewardedAds = null
+                               isLoading = false
+                               progressBar.onDismiss()
+                               onAdsClick("onAddDismiss")
+           //                    load()
+                           }
+           
+                           override fun onAdLoaded(rewardedAd: RewardedAd) {
+                               rewardedAds = rewardedAd
+                               ("onAdLoaded").log()
+                               isLoading = false
+                               show()
+                           }
+                       })
+                   }
+               }
+           
+               fun show() {
+                   if (rewardedAds == null) return
+           
+                   if (!isLoading) {
+                       progressBar.onDismiss()
+                       rewardedAds?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                           override fun onAdClicked() {
+                               ("Ad was clicked.").log()
+                               onAdsClick("onAdsClick")
+                           }
+           
+                           override fun onAdDismissedFullScreenContent() {
+                               ("Ad dismissed fullscreen content.").log()
+                               onAdsClick("onAddDismiss")
+                               rewardedAds = null
+                           }
+           
+                           override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                               // Called when ad fails to show.
+                               ("Ad failed to show fullscreen content.").log()
+                               onAdsClick("onAddFail")
+                               rewardedAds = null
+                           }
+           
+                           override fun onAdImpression() {
+                               ("Ad recorded an impression.").log()
+                           }
+           
+                           override fun onAdShowedFullScreenContent() {
+                               ("Ad showed fullscreen content.").log()
+                           }
+                       }
+           
+                       rewardedAds?.show(activity) {
+                           fun onUserEarnedReward(rewardItem: RewardItem) {
+                               val rewardAmount = rewardItem.amount
+                               val rewardType = rewardItem.type
+                               ("User earned the reward. $rewardAmount  | $rewardType").log()
+                           }
+                           onAdsClick("onAdsFullShow")
+                           ("User earned onComplete the reward").log()
+                       }
+                   }
+               }
+           }
+
+
+     ----------------------
+
+      BIG NATIVE ADS
+           
+                 <com.google.android.gms.ads.nativead.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+               xmlns:app="http://schemas.android.com/apk/res-auto"
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:background="#1F1F1F"
+               android:clipChildren="false"
+               android:clipToPadding="false">
+           
+               <androidx.cardview.widget.CardView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   app:cardCornerRadius="6dp"
+                   app:cardUseCompatPadding="false">
+           
+                   <LinearLayout
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:background="@drawable/gd_home"
+                       android:backgroundTint="#1F1F1F"
+                       android:orientation="vertical">
+           
+                       <RelativeLayout
+                           android:id="@+id/layout_img"
+                           android:layout_width="match_parent"
+                           android:layout_height="wrap_content">
+           
+                           <LinearLayout
+                               android:id="@+id/adtop"
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:layout_marginStart="@dimen/_10sdp"
+                               android:layout_marginTop="@dimen/_5sdp"
+                               android:orientation="horizontal"
+                               android:padding="4dp">
+           
+                               <androidx.constraintlayout.utils.widget.ImageFilterView
+                                   android:id="@+id/ad_app_icon"
+                                   android:layout_width="45dp"
+                                   android:layout_height="45dp"
+                                   android:adjustViewBounds="true"
+                                   android:scaleType="fitCenter"
+                                   android:src="#132747"
+                                   app:round="@dimen/_5sdp" />
+           
+                               <LinearLayout
+                                   android:layout_width="match_parent"
+                                   android:layout_height="match_parent"
+                                   android:layout_gravity="center"
+                                   android:gravity="center"
+                                   android:orientation="vertical"
+                                   android:paddingLeft="5dp">
+           
+                                   <androidx.appcompat.widget.AppCompatTextView
+                                       android:id="@+id/ad_headline"
+                                       android:layout_width="match_parent"
+                                       android:layout_height="wrap_content"
+                                       android:ellipsize="end"
+                                       android:maxLines="2"
+                                       android:textColor="#3AE5A3"
+                                       android:textSize="14sp"
+                                       android:textStyle="bold" />
+           
+                                   <androidx.appcompat.widget.AppCompatTextView
+                                       android:id="@+id/ad_body"
+                                       android:layout_width="match_parent"
+                                       android:layout_height="wrap_content"
+                                       android:layout_gravity="center"
+                                       android:ellipsize="end"
+                                       android:gravity="start"
+                                       android:maxLines="1"
+                                       android:textColor="#08C3F4"
+                                       android:textSize="10sp"
+                                       android:visibility="visible" />
+           
+                                   <LinearLayout
+                                       android:layout_width="match_parent"
+                                       android:layout_height="wrap_content"
+                                       android:visibility="gone">
+           
+                                       <androidx.appcompat.widget.AppCompatTextView
+                                           android:id="@+id/ad_advertiser"
+                                           android:layout_width="wrap_content"
+                                           android:layout_height="match_parent"
+                                           android:ellipsize="end"
+                                           android:gravity="bottom"
+                                           android:maxLines="1"
+                                           android:text=""
+                                           android:textColor="@color/black"
+                                           android:textSize="13sp"
+                                           android:textStyle="bold" />
+           
+           
+                                       <RatingBar
+                                           android:id="@+id/ad_stars"
+                                           style="?android:attr/ratingBarStyleSmall"
+                                           android:layout_width="wrap_content"
+                                           android:layout_height="wrap_content"
+                                           android:isIndicator="true"
+                                           android:numStars="5"
+                                           android:stepSize="0.5" />
+                                   </LinearLayout>
+                               </LinearLayout>
+                           </LinearLayout>
+           
+           
+                           <androidx.appcompat.widget.AppCompatTextView
+                               android:layout_width="wrap_content"
+                               android:layout_height="wrap_content"
+                               android:layout_alignParentTop="true"
+                               android:layout_gravity="bottom|left|center_vertical|center_horizontal|center"
+                               android:background="@drawable/ad_tv"
+                               android:elevation="@dimen/_2sdp"
+                               android:fontFamily="@font/mulishextrabold"
+                               android:padding="@dimen/_2sdp"
+                               android:text=" Ad "
+                               android:textColor="@color/white"
+                               android:textSize="@dimen/_8sdp"
+                               android:textStyle="bold"
+                               android:visibility="visible" />
+           
+                           <androidx.appcompat.widget.AppCompatImageView
+                               android:id="@+id/ad_image_bg"
+                               android:layout_width="match_parent"
+                               android:layout_height="@dimen/_125sdp"
+                               android:layout_below="@+id/adtop"
+                               android:layout_centerInParent="true"
+                               android:layout_marginLeft="1dp"
+                               android:layout_marginTop="1dp"
+                               android:layout_marginRight="1dp"
+                               android:scaleType="centerCrop" />
+           
+                           <androidx.appcompat.widget.AppCompatImageView
+                               android:id="@+id/ad_image"
+                               android:layout_width="match_parent"
+                               android:layout_height="@dimen/_125sdp"
+                               android:layout_below="@+id/adtop"
+                               android:layout_centerInParent="true"
+                               android:layout_marginLeft="1dp"
+                               android:layout_marginTop="1dp"
+                               android:layout_marginRight="1dp"
+                               android:adjustViewBounds="true"
+                               android:visibility="gone" />
+           
+                           <com.google.android.gms.ads.nativead.MediaView
+                               android:id="@+id/ad_media"
+                               android:layout_width="match_parent"
+                               android:layout_height="@dimen/_125sdp"
+                               android:layout_below="@+id/adtop"
+                               android:layout_centerInParent="true"
+                               android:layout_marginStart="@dimen/_10sdp"
+                               android:layout_marginTop="@dimen/_10sdp"
+                               android:layout_marginEnd="@dimen/_10sdp"
+                               android:layout_marginBottom="@dimen/_10sdp"
+                               android:visibility="visible" />
+                       </RelativeLayout>
+           
+                       <RelativeLayout
+                           android:layout_width="match_parent"
+                           android:layout_height="wrap_content"
+                           android:orientation="vertical">
+           
+                           <LinearLayout
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:orientation="vertical">
+           
+                               <LinearLayout
+                                   android:layout_width="match_parent"
+                                   android:layout_height="0dp"
+                                   android:layout_weight="0.7"
+                                   android:orientation="vertical">
+           
+                                   <LinearLayout
+                                       android:layout_width="match_parent"
+                                       android:layout_height="wrap_content"
+                                       android:layout_gravity="center"
+                                       android:orientation="vertical"
+                                       android:paddingTop="5dp"
+                                       android:visibility="gone">
+           
+                                       <androidx.appcompat.widget.AppCompatTextView
+                                           android:id="@+id/ad_price"
+                                           android:layout_width="wrap_content"
+                                           android:layout_height="wrap_content"
+                                           android:paddingStart="5dp"
+                                           android:paddingLeft="5dp"
+                                           android:paddingEnd="5dp"
+                                           android:paddingRight="5dp"
+                                           android:text=""
+                                           android:textColor="@color/white"
+                                           android:textSize="12sp"
+                                           android:visibility="gone" />
+           
+                                       <androidx.appcompat.widget.AppCompatTextView
+                                           android:id="@+id/ad_store"
+                                           android:layout_width="wrap_content"
+                                           android:layout_height="wrap_content"
+                                           android:paddingStart="5dp"
+                                           android:paddingLeft="5dp"
+                                           android:paddingEnd="5dp"
+                                           android:paddingRight="5dp"
+                                           android:text=""
+                                           android:textColor="@color/white"
+                                           android:textSize="12sp"
+                                           android:visibility="gone" />
+                                   </LinearLayout>
+                               </LinearLayout>
+           
+           
+                               <androidx.appcompat.widget.AppCompatButton
+                                   android:id="@+id/ad_call_to_action"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="@dimen/_35sdp"
+                                   android:layout_gravity="center_vertical"
+                                   android:layout_margin="@dimen/_8sdp"
+                                   android:layout_marginStart="@dimen/_8sdp"
+                                   android:layout_marginTop="@dimen/_8sdp"
+                                   android:layout_marginEnd="@dimen/_8sdp"
+                                   android:layout_marginBottom="@dimen/_8sdp"
+                                   android:background="@drawable/tv_round_shap"
+                                   android:elevation="@dimen/_2sdp"
+                                   android:gravity="center"
+                                   android:textAllCaps="true"
+                                   android:textColor="@color/white"
+                                   android:textSize="@dimen/_16sdp" />
+                           </LinearLayout>
+           
+                       </RelativeLayout>
+           
+                   </LinearLayout>
+               </androidx.cardview.widget.CardView>
+           </com.google.android.gms.ads.nativead.NativeAdView>
+
+     ----------- SMALL -*--------
+           
+                <com.google.android.gms.ads.nativead.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:background="#1F1F1F"
+               android:clipChildren="false"
+               android:clipToPadding="false">
+           
+               <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   app:cardElevation="@dimen/_2sdp">
+           
+                   <LinearLayout
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:background="@drawable/gd_home"
+                       android:backgroundTint="#1F1F1F"
+                       android:orientation="vertical">
+           
+                       <RelativeLayout
+                           android:layout_width="match_parent"
+                           android:layout_height="wrap_content"
+                           android:orientation="vertical">
+           
+                           <LinearLayout
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:orientation="vertical">
+           
+                               <LinearLayout
+                                   android:layout_width="match_parent"
+                                   android:layout_height="wrap_content"
+                                   android:layout_weight="0.7"
+                                   android:orientation="vertical">
+           
+                                   <LinearLayout
+                                       android:layout_width="match_parent"
+                                       android:layout_height="wrap_content"
+                                       android:layout_gravity="center"
+                                       android:orientation="vertical"
+                                       android:paddingTop="5dp"
+                                       android:visibility="gone">
+           
+                                       <androidx.appcompat.widget.AppCompatTextView
+                                           android:id="@+id/ad_price"
+                                           android:layout_width="wrap_content"
+                                           android:layout_height="wrap_content"
+                                           android:paddingStart="5dp"
+                                           android:paddingLeft="5dp"
+                                           android:paddingEnd="5dp"
+                                           android:paddingRight="5dp"
+                                           android:text=""
+                                           android:textColor="@color/white"
+                                           android:textSize="12sp"
+                                           android:visibility="gone" />
+           
+                                       <androidx.appcompat.widget.AppCompatTextView
+                                           android:id="@+id/ad_store"
+                                           android:layout_width="wrap_content"
+                                           android:layout_height="wrap_content"
+                                           android:paddingStart="5dp"
+                                           android:paddingLeft="5dp"
+                                           android:paddingEnd="5dp"
+                                           android:paddingRight="5dp"
+                                           android:text=""
+                                           android:textColor="@color/white"
+                                           android:textSize="12sp"
+                                           android:visibility="gone" />
+                                   </LinearLayout>
+                               </LinearLayout>
+           
+                               <LinearLayout
+                                   android:layout_width="match_parent"
+                                   android:layout_height="wrap_content"
+                                   android:layout_marginStart="@dimen/_10sdp"
+                                   android:layout_marginTop="@dimen/_15sdp"
+                                   android:layout_marginBottom="@dimen/_30sdp"
+                                   android:orientation="horizontal"
+                                   android:padding="4dp">
+           
+                                   <androidx.constraintlayout.utils.widget.ImageFilterView
+                                       android:id="@+id/ad_app_icon"
+                                       android:layout_width="45dp"
+                                       android:layout_height="45dp"
+                                       android:adjustViewBounds="true"
+                                       android:scaleType="fitCenter"
+                                       android:src="#132747"
+                                       app:round="@dimen/_5sdp" />
+           
+                                   <LinearLayout
+                                       android:layout_width="match_parent"
+                                       android:layout_height="match_parent"
+                                       android:layout_gravity="center"
+                                       android:gravity="center"
+                                       android:orientation="vertical"
+                                       android:paddingLeft="5dp">
+           
+                                       <androidx.appcompat.widget.AppCompatTextView
+                                           android:id="@+id/ad_headline"
+                                           android:layout_width="match_parent"
+                                           android:layout_height="wrap_content"
+                                           android:ellipsize="end"
+                                           android:maxLines="2"
+                                           android:textColor="@color/white"
+                                           android:textSize="14sp"
+                                           android:textStyle="bold" />
+           
+                                       <androidx.appcompat.widget.AppCompatTextView
+                                           android:id="@+id/ad_body"
+                                           android:layout_width="match_parent"
+                                           android:layout_height="wrap_content"
+                                           android:layout_gravity="center"
+                                           android:ellipsize="end"
+                                           android:gravity="start"
+                                           android:maxLines="1"
+                                           android:textColor="#7A7A7A"
+                                           android:textSize="10sp"
+                                           android:visibility="visible" />
+           
+                                       <LinearLayout
+                                           android:layout_width="match_parent"
+                                           android:layout_height="wrap_content"
+                                           android:visibility="gone">
+           
+                                           <androidx.appcompat.widget.AppCompatTextView
+                                               android:id="@+id/ad_advertiser"
+                                               android:layout_width="wrap_content"
+                                               android:layout_height="match_parent"
+                                               android:ellipsize="end"
+                                               android:gravity="bottom"
+                                               android:maxLines="1"
+                                               android:text=""
+                                               android:textColor="@color/black"
+                                               android:textSize="13sp"
+                                               android:textStyle="bold" />
+           
+           
+                                           <RatingBar
+                                               android:id="@+id/ad_stars"
+                                               style="?android:attr/ratingBarStyleSmall"
+                                               android:layout_width="wrap_content"
+                                               android:layout_height="wrap_content"
+                                               android:isIndicator="true"
+                                               android:numStars="5"
+                                               android:stepSize="0.5" />
+                                       </LinearLayout>
+                                   </LinearLayout>
+                               </LinearLayout>
+           
+                               <androidx.appcompat.widget.AppCompatButton
+                                   android:id="@+id/ad_call_to_action"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="@dimen/_40sdp"
+                                   android:layout_gravity="center_vertical"
+                                   android:layout_margin="@dimen/_8sdp"
+                                   android:background="@drawable/tv_round_shap"
+                                   android:elevation="@dimen/_2sdp"
+                                   android:gravity="center"
+                                   android:textAllCaps="true"
+                                   android:textColor="@color/white"
+                                   android:textSize="@dimen/_16sdp" />
+                           </LinearLayout>
+           
+                           <androidx.appcompat.widget.AppCompatTextView
+                               android:layout_width="wrap_content"
+                               android:layout_height="wrap_content"
+                               android:layout_alignParentTop="true"
+                               android:layout_gravity="bottom|left|center_vertical|center_horizontal|center"
+                               android:background="@drawable/ad_tv"
+                               android:elevation="@dimen/_2sdp"
+                               android:fontFamily="@font/mulishextrabold"
+                               android:padding="@dimen/_2sdp"
+                               android:text=" Ad "
+                               android:textColor="@color/white"
+                               android:textSize="@dimen/_8sdp"
+                               android:textStyle="bold"
+                               android:visibility="visible" />
+                       </RelativeLayout>
+           
+                   </LinearLayout>
+               </androidx.cardview.widget.CardView>
+           </com.google.android.gms.ads.nativead.NativeAdView>
+
+           
 // Reverse Timer CountDown
 
            var totalTimeInMillis = (30 * 60000).toLong()

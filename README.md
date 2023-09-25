@@ -1,5 +1,78 @@
 # testfenil.github.io
 
+// Foreground Service
+
+             <service
+                        android:name=".Service.ForegroundServiceManager"
+                        android:exported="false" />
+                        
+            class ForegroundServiceManager : Service() {
+                private var mNotificationManager: NotificationManager? = null
+            
+                override fun onDestroy() {
+                    ("onDestroy").log()
+                    super.onDestroy()
+                }
+            
+                override fun onBind(p0: Intent?) = null
+            
+                override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+            //        ("onStart Command").log()
+                    createNotificationChannel(this)
+                    startForeground(ID_NOTIFI_MANAGER, showNotification(this))
+            
+                    return START_STICKY
+                }
+            
+                override fun onTaskRemoved(rootIntent: Intent?) {
+                    super.onTaskRemoved(rootIntent)
+                    ("OnTask Removed").log()
+                }
+            
+                private fun createNotificationChannel(mContext: Context) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        val name: CharSequence = mContext.getString(R.string.app_name)
+                        val importance = NotificationManager.IMPORTANCE_HIGH
+                        mNotificationManager =
+                            mContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                        val mChannel = NotificationChannel(ID_NOTIFI_MANAGER.toString(), name, importance)
+                        mNotificationManager!!.createNotificationChannel(mChannel)
+                    }
+                }
+            
+                @SuppressLint("RemoteViewLayout")
+                fun showNotification(mContext: Context): Notification {
+                    val notificationLayout = RemoteViews(
+                        mContext.packageName, R.layout.layout_notification_remote
+                    )
+            
+                    notificationLayout.setOnClickPendingIntent(
+                        R.id.root,
+                        PendingIntent.getActivity(
+                            mContext,
+                            0,
+                            Intent(
+                                mContext,
+                                SplaceAct::class.java
+                            ).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                            flags
+                        )
+                    )
+            
+                    return NotificationCompat.Builder(mContext, ID_NOTIFI_MANAGER.toString()).setOngoing(true)
+                        .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        .setCustomContentView(notificationLayout).setContent(notificationLayout)
+                        .setCustomHeadsUpContentView(notificationLayout)
+                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                        .setCustomBigContentView(notificationLayout)
+                        .setStyle(NotificationCompat.BigPictureStyle())
+                        .setPriority(NotificationCompat.PRIORITY_HIGH).setSmallIcon(R.mipmap.ic_launcher)
+                        .build()
+                }
+            }
+            
+
 // Ads Loaded Class
 
             //Addmob Ads

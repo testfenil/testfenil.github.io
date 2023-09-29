@@ -1,5 +1,68 @@
 # testfenil.github.io
 
+// Ucrop Lib
+
+    //Ucrop
+      implementation 'com.github.yalantis:ucrop:2.2.6-native'
+
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+  
+              fun String.startUcrop(activity: Activity) {
+      val options = UCrop.Options()
+      options.setCompressionQuality(80) // Set desired compression quality
+      options.setAspectRatioOptions(
+          0,
+          AspectRatio("3:2", 3f, 4f),
+          AspectRatio("5:3", 5f, 3f),
+          AspectRatio("16:9", 16f, 9f),
+          AspectRatio("1:1", 1f, 1f)
+      )
+      options.setToolbarColor(activity.resources.getColor(R.color.white)) // Set desired toolbar color
+      options.setStatusBarColor(activity.resources.getColor(R.color.bg_color)) // Set desired status bar color
+      UCrop.of(
+          this.toUri(), Uri.fromFile(File(activity.cacheDir, "cropped_img.png"))
+      ).withOptions(options).start(activity, UCrop.REQUEST_CROP)
+    }
+
+
+    onActivity Result
+
+    
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        ("onAct Result").log()
+        if (requestCode == REQUEST_CROP && data != null) {
+            val croppedImageUri = UCrop.getOutput(data)
+            if (croppedImageUri != null) {
+                ("Crop: $croppedImageUri").log()
+                loadInterAddmobAds(this@GalleryAct) {
+                    startActivityForResult(
+                        Intent(this@GalleryAct, StyleAct::class.java).putExtra(
+                            "uri", croppedImageUri.toString()
+                        ).putExtra("selected_image", selected_image), 12
+                    )
+                }
+            } else {
+                ("Reselect Image").tos()
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            ("On U crop Cance btn").log()
+        } else if (resultCode == RESULT_OK && requestCode == 12) {
+            ("Is here").log()
+            if (data?.getStringExtra("from") == "edit") {
+                (selected_uri).startUcrop(this@GalleryAct)
+            } else if (data?.getStringExtra("from") == "back") {
+                finish()
+            }
+        }
+    }
+
+
 // Foreground Service
 
              <service

@@ -1,5 +1,89 @@
 # testfenil.github.io
 
+// InAppUpdate Manager
+
+    implementation 'com.google.android.play:core:1.10.3'
+    
+    class InAppUpdateManager(private val mActivity: Activity) {
+        private val mAppUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(mActivity)
+    
+        fun checkForAppUpdate() {
+            mAppUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo: AppUpdateInfo ->
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
+                ) {
+                    try {
+                        mAppUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.FLEXIBLE,
+                            mActivity,
+                            REQUEST_CODE
+                        )
+                    } catch (e: SendIntentException) {
+                        Log.e(
+                            TAG,
+                            "Error when starting update flow",
+                            e
+                        )
+                    }
+                }
+            }
+        }
+    
+        fun onActivityResult(requestCode: Int, resultCode: Int) {
+            if (requestCode == REQUEST_CODE) {
+                if (resultCode != RESULT_OK) {
+                    Log.e(
+                        TAG,
+                        "Update failed! Result code: $resultCode"
+                    )
+                }
+            }
+        }
+    
+        fun onResume() {
+            mAppUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo: AppUpdateInfo ->
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                    try {
+                        mAppUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.FLEXIBLE,
+                            mActivity,
+                            REQUEST_CODE
+                        )
+                    } catch (e: SendIntentException) {
+                        Log.e(
+                            TAG,
+                            "Error when starting update flow",
+                            e
+                        )
+                    }
+                }
+            }
+        }
+    
+        companion object {
+            private const val TAG = "InAppUpdateManager"
+            private const val REQUEST_CODE = 1000
+        }
+    }
+
+    use for activity
+    
+      inAppUpdateManager = InAppUpdateManager(this);
+      inAppUpdateManager.checkForAppUpdate();
+
+      
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        inAppUpdateManager.onActivityResult(requestCode, resultCode);
+    }
+
+    override fun onResume() {
+        super.onResume()
+        inAppUpdateManager.onResume();
+    }
+
 
 // Dialog In dark theme
 

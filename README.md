@@ -1,5 +1,46 @@
 # testfenil.github.io
 
+
+// Dialog In dark theme
+
+    class SaveDialog(activity: Activity) {
+        val alert: AlertDialog.Builder =
+            AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+    
+        init {
+            alert.setMessage("Photo Art saved into Gallery")
+            alert.setNegativeButton("Dismiss", null)
+            alert.setCancelable(false)
+            alert.setPositiveButton("View", object : DialogInterface.OnClickListener {
+                override fun onClick(p0: DialogInterface?, p1: Int) {
+                    ("View Cclikc").log()
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.type = "image/*"
+                    activity.startActivity(intent)
+                }
+            })
+            alert.create().show()
+        }
+    }
+            
+// SnackBarView
+
+    class SnackbarShow(activity: Activity, rootView: ViewGroup, msg: String) {
+        var snack: Snackbar = Snackbar.make(rootView, msg, Snackbar.LENGTH_SHORT)
+    
+        init {
+            snack.setBackgroundTint(activity.resources.getColor(R.color.dark_bg_color))
+    //        snack.setAction("View") {
+    //            val intent = Intent(Intent.ACTION_VIEW)
+    //            intent.type = "image/*"
+    //            activity.startActivity(intent)
+    //        }
+            snack.setActionTextColor(activity.resources.getColor(R.color.white));
+            snack.show()
+        }
+    }
+
+
 // Ucrop Lib
 
     //Ucrop
@@ -6206,7 +6247,15 @@
             "$message | ${javaClass.name}".log()
             FirebaseCrashlytics.getInstance().recordException(this)
         }
-        
+
+            fun Activity.imagetobitmap(any: Any, onBitmap: (Bitmap) -> Unit) {
+        Glide.with(this).asBitmap().load(any).into(object : BitmapImageViewTarget(ImageView(this)) {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                onBitmap.invoke(resource)
+            }
+        })
+    }
+
         fun Context.showAlertDialog(positionBtnText: String, title: String, subTitle: String, onOk: () -> Unit) {
             val dialog = MaterialAlertDialogBuilder(this)
                     .setTitle(title)
@@ -6252,6 +6301,13 @@
 
          return (abs(startDay.time - endDay.time) / (24 * 60 * 60 * 1000)).toInt()
      }
+
+     fun View.animateViewXtrigger() {
+    val animation: Animation = TranslateAnimation(this.x - 5, this.x + 5.toFloat(), 0f, 0f)
+    animation.duration = 50 // Set the duration of the animation in milliseconds
+    animation.repeatCount = 6
+    this.startAnimation(animation)
+    }
 
      fun longToDate(millis: Long) = DateFormat.format("dd/MM/yyyy", Date(millis)).toString()
 

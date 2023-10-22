@@ -1,5 +1,46 @@
 # testfenil.github.io
 
+// CoordinatorLayout with AppBarLayout animation top 
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/mainappbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+    
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:contentScrim="?attr/colorPrimary"
+                app:expandedTitleMarginEnd="64dp"
+                app:expandedTitleMarginStart="48dp"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:title="@string/app_name">
+    
+                <ImageView
+                    android:id="@+id/mainbackdrop"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/banner_main"
+                    app:layout_collapseMode="parallax" />
+
+                     <com.google.android.material.appbar.CollapsingToolbarLayout/>
+                     <com.google.android.material.appbar.AppBarLayout/>
+
+     <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            </androidx.core.widget.NestedScrollView>
+            
 // InAppUpdate Manager
 
     implementation 'com.google.android.play:core:1.10.3'

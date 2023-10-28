@@ -6113,6 +6113,78 @@
 
 // Important Lib
 
+      //splash-API
+        implementation("androidx.core:core-splashscreen:1.0.1")
+
+       -- in splace screen
+          private lateinit var splashScreen: SplashScreen
+              private val viewModel: SplashViewModel by viewModels()
+
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+            splashScreen = installSplashScreen()
+            splashScreen.setKeepOnScreenCondition { viewModel.isReadyForExit.value }
+            splashScreen.setOnExitAnimationListener { splashScreenView ->
+                val animation = splashScreenView.alphaAnimation()
+    
+                val animatorSet = AnimatorSet()
+                animatorSet.duration = 1500
+                animatorSet.interpolator = AnticipateInterpolator()
+                animatorSet.playTogether(animation)
+    
+                animatorSet.doOnEnd {
+                    splashScreenView.remove()
+                    startActivity<DashboardActivity> { }
+                    finish()
+                }
+                animatorSet.start()
+            }
+    
+            super.onCreate(savedInstanceState)
+        }
+
+                class SplashViewModel :ViewModel() {
+            val isReadyForExit = MutableStateFlow(true)
+            init {
+                viewModelScope.launch {
+                    delay(1000)
+                    isReadyForExit.tryEmit(false)
+                }
+            }
+        }
+
+     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+            <item name="windowSplashScreenBackground">@color/black</item>
+            <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+            <item name="windowSplashScreenAnimationDuration">2000</item>
+            <item name="postSplashScreenTheme">@style/Theme.Main</item>
+        </style>
+
+            
+    fun SplashScreenViewProvider.slideUpAnimation(): ObjectAnimator {
+        return ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, 0f, -view.height.toFloat())
+    }
+    
+    fun SplashScreenViewProvider.slideLeftAnimation(): ObjectAnimator {
+        return ObjectAnimator.ofFloat(view, View.TRANSLATION_X, 0f, -view.width.toFloat())
+    }
+    
+    fun SplashScreenViewProvider.scaleXAnimation(): ObjectAnimator {
+        return ObjectAnimator.ofFloat(view, View.SCALE_X, 1.0f, 0f)
+    }
+    
+    fun SplashScreenViewProvider.scaleXYAnimation(): ObjectAnimator {
+        val path = Path()
+        path.moveTo(1.0f, 1.0f)
+        path.lineTo(0f, 0f)
+    
+        return ObjectAnimator.ofFloat(view, View.SCALE_X, View.SCALE_Y, path)
+    }
+    
+    internal fun SplashScreenViewProvider.alphaAnimation(): ObjectAnimator {
+        return ObjectAnimator.ofFloat(view, View.ALPHA, 1f, 0f)
+    }
+
         
             implementation 'com.yandex.android:mobmetricalib:5.0.1'
 

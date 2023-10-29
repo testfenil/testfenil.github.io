@@ -1,5 +1,272 @@
 # testfenil.github.io
 
+// InApp Purchases - Subscription Flow
+
+     <uses-permission android:name="com.android.vending.BILLING" />
+      <uses-permission android:name="android.permission.INTERNET" />
+      
+    //billing lib 
+        def billing_version = "6.0.1"
+        implementation "com.android.billingclient:billing:$billing_version"
+        implementation "com.android.billingclient:billing-ktx:$billing_version"
+
+     -- Application Class ---
+      
+         var billingClient: BillingClient? = null
+
+     billingClient = BillingClient.newBuilder(
+                applicationContext
+            ).setListener { purchaseResult: BillingResult, purchases: List<Purchase>? ->
+                    if (purchaseResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
+                        ("MyManager: OK").log()
+                        for (purchase in purchases) {
+                            if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
+                                billingClient!!.acknowledgePurchase(
+                                    AcknowledgePurchaseParams.newBuilder()
+                                        .setPurchaseToken(purchase.purchaseToken).build()
+                                ) { result: BillingResult ->
+                                    ("acknowledgePurchase : PURCHASED && Acknowledged " + result.debugMessage).log()
+                                    isPurchased = true
+                                }
+                            }
+                        }
+                    } else ("MyManager: $purchaseResult $purchases").log()
+                }.enablePendingPurchases().build()
+
+        -- Splace Act ---
+         checkPurchased {
+                ("Here Splace").log()
+                onNext()
+            }
+
+       --- const.kt ----
+       
+    //todo --------- InApp Subscriptions ----------
+    var isPurchased: Boolean = false
+    const val subId_12Month = "sub_12_month"
+    const val subId_6Month = "sub_6_month"
+    const val subId_Month = "sub_month"
+    var subIs12Month: Boolean = false
+    var subIs6Month: Boolean = false
+    var subIsMonth: Boolean = false
+
+           fun checkPurchased(block: () -> Unit) {
+        billingClient!!.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
+    
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        billingClient!!.queryPurchasesAsync(
+                            QueryPurchasesParams.newBuilder()
+                                .setProductType(BillingClient.ProductType.SUBS).build()
+                        ) { result, purchasesList ->
+                            "purchasesList size : ${purchasesList.size}".log()
+                            if (result.responseCode == BillingClient.BillingResponseCode.OK && purchasesList.isNotEmpty()) {
+    
+                                for (s in purchasesList) {
+                                    "s: $s".log()
+    
+                                    if (s.products[0] == subId_12Month && s.purchaseState == Purchase.PurchaseState.PURCHASED) subIs12Month =
+                                        true
+                                    else if (s.products[0] == subId_6Month && s.purchaseState == Purchase.PurchaseState.PURCHASED) subIs6Month =
+                                        true
+                                    else if (s.products[0] == subId_Month && s.purchaseState == Purchase.PurchaseState.PURCHASED) subIsMonth =
+                                        true
+    
+                                    isPurchased = true
+                                }
+                            }
+    
+                            CoroutineScope(Dispatchers.Main).launch {
+                                block()
+                            }
+                        }
+                    }
+    
+                } else {
+                    "check failed: $billingResult".log()
+                    block()
+                }
+            }
+    
+            override fun onBillingServiceDisconnected() {
+                "onBillingServiceDisconnected".log()
+                block()
+            }
+        })
+    }
+
+
+      --- Final Activity ------
+
+       
+        data class Subs(
+            val details: ProductDetails,
+            val priceDec: String,
+            val discount: String? = null,
+            val suggestion: String? = null,
+            val tags: String? = null,
+            val subscribed: Boolean? = false
+        )
+        
+        class SubscriptionAct : BaseAct<ActivitySubscriptionBinding>() {
+            var monthPrice: String? = null
+            var sixPrice: String? = null
+            var yearPrice: String? = null
+            var plan: Subs? = null
+        
+            override fun getActivityBinding(inflater: LayoutInflater) =
+                ActivitySubscriptionBinding.inflate(layoutInflater)
+        
+            override fun initUI() {
+        
+                checkPurchased {
+                    setInAppOption()
+                }
+        
+                bind.apply {
+        
+                    proid.click {
+                        billingClient!!.launchBillingFlow(
+                            this@SubscriptionAct,
+                            BillingFlowParams.newBuilder().setProductDetailsParamsList(
+                                listOf(
+                                    BillingFlowParams.ProductDetailsParams.newBuilder()
+                                        .setProductDetails(plan!!.details)
+                                        .setOfferToken(plan!!.details.subscriptionOfferDetails!![0].offerToken)
+                                        .build()
+                                )
+                            ).build()
+                        )
+                    }
+                }
+            }
+        
+            private fun setInAppOption() {
+                billingClient!!.startConnection(object : BillingClientStateListener {
+                    override fun onBillingSetupFinished(billingResult: BillingResult) {
+        
+                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+        
+                            billingClient!!.queryProductDetailsAsync(
+                                QueryProductDetailsParams.newBuilder().setProductList(
+                                    listOf(
+                                        QueryProductDetailsParams.Product.newBuilder()
+                                            .setProductId(subId_Month).setProductType(
+                                                BillingClient.ProductType.SUBS
+                                            ).build(),
+                                        QueryProductDetailsParams.Product.newBuilder()
+                                            .setProductId(subId_6Month).setProductType(
+                                                BillingClient.ProductType.SUBS
+                                            ).build(),
+                                        QueryProductDetailsParams.Product.newBuilder()
+                                            .setProductId(subId_12Month).setProductType(
+                                                BillingClient.ProductType.SUBS
+                                            ).build()
+                                    )
+                                ).build()
+                            ) { _, productDetailsList ->
+        
+                                val subsList = arrayListOf<Subs>()
+                                for (p in productDetailsList) {
+                                    val price =
+                                        p.subscriptionOfferDetails!![0].pricingPhases.pricingPhaseList[0].priceAmountMicros / 1000000
+                                    val Fprice =
+                                        p.subscriptionOfferDetails!![0].pricingPhases.pricingPhaseList[0].formattedPrice
+        
+                                    val priceString: String
+                                    val monthlyPrice: Long?
+        
+                                    when (p.productId) {
+                                        subId_12Month -> {
+                                            yearPrice = Fprice
+                                            priceString = "₹${price} / Yearly"
+                                            monthlyPrice = price / 12
+                                        }
+        
+                                        subId_6Month -> {
+                                            sixPrice = Fprice
+                                            priceString = "₹${price} / 6 Months"
+                                            monthlyPrice = price / 6
+                                        }
+        
+                                        else -> {
+                                            monthPrice = Fprice
+                                            priceString = "₹${price} / Monthly"
+                                            monthlyPrice = null
+                                        }
+                                    }
+        
+                                    val isSubscribed = when (p.productId) {
+                                        subId_12Month -> subIs12Month
+                                        subId_6Month -> subIs6Month
+                                        subId_Month -> subIsMonth
+                                        else -> null
+                                    }
+        
+                                    subsList.add(
+                                        Subs(
+                                            details = p,
+                                            priceDec = if (monthlyPrice == null) "<font color=#000000> $priceString  </font>" else "<font color=#000000> $priceString  </font> <br> <font color=#969696>  <small>  $monthlyPrice per month  </small></font>",
+                                            suggestion = if (p.productId == "sub_12_month") "Recommended" else if (p.productId == "sub_6_month") "Most Popular" else null,
+                                            subscribed = isSubscribed
+                                        )
+                                    )
+                                }
+        
+                                runOnUiThread {
+                                    "setText()".log()
+        //                            bind.rvSubs.adapter = SubsAdapter(this@SubscriptionActivity, subsList) {
+        //                                plan = it
+        //                            }
+        
+        //                            bind.pb.gon()
+        //                            bind.nsv.visible()
+                                }
+                            }
+        
+                        } else {
+                            "onBillingSetupFinished: else ${billingResult}".log()
+                            runOnUiThread {
+                                ("Hewre ELse").log()
+                            }
+                        }
+                    }
+        
+                    override fun onBillingServiceDisconnected() {
+                        "onBillingServiceDisconnected".log()
+                        setInAppOption()
+                    }
+                })
+            }
+        }
+
+                
+
+// SpeedyAnimation LinearLayout 
+
+    class SpeedyLinearLayoutManager : LinearLayoutManager {
+        constructor(context: Context?) : super(context)
+        constructor(context: Context?, orientation: Int, reverseLayout: Boolean) : super(context, orientation, reverseLayout)
+        constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)
+    
+        override fun smoothScrollToPosition(recyclerView: RecyclerView, state: RecyclerView.State, position: Int) {
+            val linearSmoothScroller: LinearSmoothScroller = object : LinearSmoothScroller(recyclerView.context) {
+    
+                override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+                    return MILLISECONDS_PER_INCH / displayMetrics.densityDpi
+                }
+            }
+            linearSmoothScroller.targetPosition = position
+            startSmoothScroll(linearSmoothScroller)
+        }
+    
+        companion object {
+            private const val MILLISECONDS_PER_INCH = 5000f //default is 25f (bigger = slower)
+        }
+    }
+
+
 // CoordinatorLayout with AppBarLayout animation top 
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"

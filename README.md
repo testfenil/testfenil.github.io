@@ -1,5 +1,19 @@
 # testfenil.github.io
 
+
+// Remove Firebase Crash Log
+
+       release {
+                 ...
+                 // Add the following line to disable Crashlytics
+                 firebaseCrashlytics {
+                     mappingFileUploadEnabled false
+                     ndkSymbolUploadEnabled false
+                     obfuscationMappingFileUploadEnabled false
+                 }
+             }
+             
+
 // InApp Purchases - Subscription Flow
 
      <uses-permission android:name="com.android.vending.BILLING" />

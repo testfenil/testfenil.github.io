@@ -1,6 +1,145 @@
 # testfenil.github.io
 
 
+// Call Multipart Api Call
+
+       @Keep
+       interface ApiService {
+           @Multipart
+           @POST("img2img")
+           fun makeApiCall(
+               @Part file: MultipartBody.Part,
+               @Part("prompt") prompt: RequestBody,
+               @Part("strength") strength: Double = 0.35,
+               @Part("guidance_scale") guidance_scale: Double = 5.5,
+               @Part("num_inference_steps") num_inference_steps: Int = 100,
+               @Part("negative_prompt") negative_prompt: String = "ugly, tiling, poorly drawn hands, poorly drawn feet, poorly drawn face, out of frame, extra limbs",
+           ): Call<ResModel>
+       }
+
+
+       @Keep
+       interface onResponce {
+           fun <T> onSuccess(res: T)
+           fun onError(error: String)
+       }
+       
+       @Keep
+       class ApiCaller {
+           fun makeApiCall(reqBodyFile: MultipartBody.Part, promypart: RequestBody, onNext: onResponce) {
+               val interceptor by lazy { HttpLoggingInterceptor() } //todo remove this line in production
+               interceptor.setLevel(HttpLoggingInterceptor.Level.BODY) //todo remove this line in production
+       
+               val okClient by lazy {
+                   OkHttpClient.Builder().addInterceptor(Interceptor { chain: Interceptor.Chain ->
+                       val originalRequest: Request = chain.request()
+                       val requestBuilder: Request.Builder =
+                           originalRequest.newBuilder().addHeader("Cache-Control", "no-cache")
+                               .method(originalRequest.method, originalRequest.body)
+                       val request: Request = requestBuilder.build()
+                       chain.proceed(request)
+                   }).connectTimeout(30, TimeUnit.SECONDS).addInterceptor(interceptor)
+                       .readTimeout(30, TimeUnit.SECONDS).build()
+               }
+       
+               val retrofit by lazy {
+                   Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create())
+                       .client(okClient).build()
+               }
+               val myApi by lazy {
+                   retrofit.create(ApiService::class.java)
+               }
+               myApi.makeApiCall(prompt = promypart, file = reqBodyFile)
+                   .enqueue(object : Callback<ResModel> {
+                       override fun onResponse(
+                           call: Call<ResModel>, response: retrofit2.Response<ResModel>
+                       ) {
+                           ("Rs Code: ${response.code()}} | ${response.message()} ").log()
+                           if (response.code() == 200) onNext.onSuccess(response.body())
+                           else {
+                               onNext.onError("Something Went Wrong Try Again!")
+                           }
+                       }
+       
+                       override fun onFailure(call: Call<ResModel>, t: Throwable) {
+                           ("OnError: ${t.message}").log()
+                           onNext.onError(t.message!!)
+                       }
+                   })
+           }
+       }
+
+
+                        val myDir = File(cacheDir.toURI())
+                        if (!myDir.exists()) myDir.mkdirs()
+                        val file = File(myDir, "croped_kb.jpeg")
+                        if (file.exists()) file.delete()
+                        try {
+                            val out = FileOutputStream(file)
+                            resource.compress(
+                                Bitmap.CompressFormat.JPEG, 30, out
+                            )
+                            out.flush()
+                            out.close()
+                        } catch (e: Exception) {
+                            (e.message!!).log()
+                        }
+
+                        ("Size: " + getFileSize(file.length()) + " | W: ${resource.width} | H: ${resource.height}").log()
+
+                        ("Bitmap Genrated: ${file.path}").log()
+
+                        val requestBody =
+                            RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file)
+                        val filePart: MultipartBody.Part =
+                            MultipartBody.Part.createFormData("image", file.name, requestBody)
+                        val promypart =
+                            RequestBody.create("text/plain".toMediaTypeOrNull(), promtext)
+
+                        try {
+                            if (hasInternetConnect()) {
+                                ApiCaller().makeApiCall(filePart, promypart, object : onResponce {
+                                    override fun <T> onSuccess(res: T) {
+                                        resbody = res as ResModel
+                                        DataHolder.largeData = resbody.data
+                                        DataHolder.selectedImg = imageUrl!!
+                                        runOnUiThread {
+                                            if (!isDestroyed) {
+                                                bind.miraclloading.gon()
+                                                bind.doneconstraint.visible()
+                                            }
+                                        }
+                                    }
+
+                                    override fun onError(error: String) {
+                                        ("onError: $error").log()
+                                        runOnUiThread {
+                                            SnackbarShow(
+                                                this@MiracleAct,
+                                                bind.root,
+                                                "Some thing went wrong Try Again !"
+                                            )
+                                        }
+                                    }
+                                })
+                            } else {
+                                runOnUiThread {
+                                    SnackbarShow(
+                                        this@MiracleAct,
+                                        bind.root,
+                                        "Please connect to the internet and try again."
+                                    )
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            SnackbarShow(
+                                this@MiracleAct, bind.root, "Some thing went wrong Try Again !"
+                            )
+                            "API call crashed with exception: ${e.message}".log()
+                        }
+
+
 // Remove Firebase Crash Log
 
        release {

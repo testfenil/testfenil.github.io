@@ -1,5 +1,9 @@
 # testfenil.github.io
 
+// Firebase Getting a SHA1 Key
+ 
+         keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+
 
 // Call Multipart Api Call
 

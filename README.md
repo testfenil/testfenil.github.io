@@ -1,5 +1,13 @@
 # testfenil.github.io
 
+// hide a device bottom navigation view
+
+    // Check if the device has a navigation bar
+          val decorView = window.decorView
+          val uiOptions = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                  or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+          decorView.systemUiVisibility = uiOptions
+
 // Firebase Getting a SHA1 Key
  
          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android

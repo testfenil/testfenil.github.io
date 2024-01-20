@@ -1,5 +1,89 @@
 # testfenil.github.io
 
+// Custom TabLayout
+
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/tabbg"
+        android:elevation="30dp"
+        android:padding="@dimen/_3sdp"
+        app:tabGravity="fill"
+        app:tabIndicator="@android:color/transparent"
+        android:layout_marginTop="@dimen/_3sdp"
+        app:tabIndicatorColor="@android:color/transparent"
+        app:tabMode="fixed"
+        android:layout_marginStart="@dimen/_12sdp"
+        android:layout_marginEnd="@dimen/_12sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
+        app:tabPaddingEnd="-2dp"
+        app:tabPaddingStart="-2dp">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/homemaabc" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/consettrofytrofy" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/menproficon" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:icon="@drawable/more_iconicon" />
+
+    </com.google.android.material.tabs.TabLayout>
+
+
+        tabs.setOnTabSelectedListener(object : OnTabSelectedListener {
+                    override fun onTabSelected(tab: TabLayout.Tab) {
+                        val tabIconColor =
+                            ContextCompat.getColor(this@MainActivity, R.color.tabtextselected)
+                        tab.icon!!.setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN)
+                        if (tab.position == 0) {
+                            replaceFragment(HomeFragment())
+                            head.visibility = View.VISIBLE
+                        } /*else if (tab.position == 1) {
+                            replaceFragment(TrofiFragment())
+                            head.visibility = View.VISIBLE
+                        } else if (tab.position == 2) {
+                            replaceFragment(ProfileFragment())
+                            head.visibility = View.GONE
+                        } else {
+                            replaceFragment(MenuFragment())
+                            head.visibility = View.VISIBLE
+                        }*/
+                    }
+
+                    override fun onTabUnselected(tab: TabLayout.Tab) {
+                        val tabIconColor =
+                            ContextCompat.getColor(this@MainActivity, R.color.tabtextunselected)
+                        tab.icon!!.setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN)
+                    }
+
+                    override fun onTabReselected(tab: TabLayout.Tab) {}
+                })
+
+
+
+                 private fun replaceFragment(fragment: Fragment) {
+        val fragmentManager = supportFragmentManager
+        val transaction = fragmentManager.beginTransaction()
+        transaction.replace(R.id.fragmentid, fragment)
+        transaction.commit()
+    }
+    
+
 // Blur ImageView
 
     object BlurBuilder {

@@ -1,5 +1,57 @@
 # testfenil.github.io
 
+// BaseFragment
+
+
+    abstract class BaseFragment<T : ViewBinding> : Fragment() {
+        lateinit var bind: T
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        ): View? {
+            bind = getActivityBinding(layoutInflater)
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+                requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+                requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                requireActivity().window.decorView.systemUiVisibility =
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                requireActivity().window.statusBarColor = Color.TRANSPARENT
+            } else {
+                requireActivity().window.setFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN
+                )
+            }
+            return bind.root
+        }
+    
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            initUI()
+        }
+    
+        abstract fun getActivityBinding(inflater: LayoutInflater): T
+    
+        abstract fun initUI()
+    
+        fun <T> T.tos() = Toast.makeText(requireActivity(), "$this", Toast.LENGTH_SHORT).show()
+        fun <T> T.tosL() = Toast.makeText(requireActivity(), "$this", Toast.LENGTH_LONG).show()
+    
+        fun openUri(uri: String) = startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+    
+        fun rateUs() {
+            try {
+                val marketUri = Uri.parse("market://details?id=${requireActivity().packageName}")
+                val marketIntent = Intent(Intent.ACTION_VIEW, marketUri)
+                startActivity(marketIntent)
+            } catch (e: Exception) {
+                val marketUri =
+                    Uri.parse("https://play.google.com/store/apps/details?id=${requireActivity().packageName}")
+                val marketIntent = Intent(Intent.ACTION_VIEW, marketUri)
+                startActivity(marketIntent)
+            }
+        }
+    }
+
 // Custom TabLayout
 
 

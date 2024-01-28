@@ -1,5 +1,108 @@
 # testfenil.github.io
 
+// Custom Popup PopupManager WindowManager Dialog
+
+        class WallatPopupDialog constructor(activity: Activity, anchorView: View) {
+            private var popupWindow: PopupWindow? = null
+            var bind = WallatpopupDialogBinding.inflate(activity.layoutInflater)
+        
+            init {
+                val popupView: WallatpopupDialogBinding =
+                    WallatpopupDialogBinding.inflate(activity.layoutInflater)
+                LayoutInflater.from(activity).inflate(R.layout.wallatpopup_dialog, null)
+        
+                // Create a PopupWindow
+                popupWindow = PopupWindow(
+                    popupView.root, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+        
+                // Set background color to make it look like a dialog
+                popupWindow!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                popupWindow!!.isOutsideTouchable = true
+                popupWindow!!.isFocusable = true
+        
+                val location = IntArray(2)
+                anchorView.getLocationOnScreen(location)
+        //        popupWindow!!.showAtLocation(anchorView, Gravity.TOP, 0, 60)
+                popupWindow!!.showAsDropDown(anchorView)
+                popupView.apply {
+                    addcaseid.click {
+                        popupWindow!!.dismiss()
+                        activity.startActivity(Intent(activity, AddCaseActivity::class.java))
+                    }
+                    mybalanceid.click {
+                        popupWindow!!.dismiss()
+                        activity.startActivity(Intent(activity, MyWallatAct::class.java))
+                    }
+                    kyvverifyid.click {
+                        popupWindow!!.dismiss()
+                        activity.startActivity(Intent(activity, KycVerifyAct::class.java))
+                    }
+                }
+        
+        //        popupDialog = Dialog(activity);
+        //        popupDialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        //        popupDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT));
+        //        popupDialog!!.setCanceledOnTouchOutside(true);
+        //
+        //        popupDialog!!.show()
+        
+        
+        //        dialog.setContentView(bind.root)
+        //        dialog.window!!.setLayout(
+        //            WindowManager.LayoutParams.WRAP_CONTENT,
+        //            WindowManager.LayoutParams.WRAP_CONTENT
+        //        )
+        //        dialog.window!!.setBackgroundDrawableResource(android.R.color.transparent)
+        //        dialog.show()
+        //
+        //        bind.apply {
+        //            cancelid.click { dialog.dismiss() }
+        //            okid.click { dialog.dismiss() }
+        //        }
+            }
+        }
+
+
+
+
+         <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:elevation="@dimen/_2sdp"
+        android:layout_marginTop="@dimen/_6sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_10sdp"
+        app:cardCornerRadius="@dimen/_3sdp"
+        app:cardElevation="@dimen/_2sdp"
+        app:cardMaxElevation="@dimen/_2sdp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_3sdp"
+                android:fontFamily="@font/fredoka_medium"
+                android:gravity="center"
+                android:text="Total Cash"
+                android:textColor="#94000000"
+                android:textSize="@dimen/_13sdp" />
+
+     </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+
+
+
 // BaseFragment
 
 

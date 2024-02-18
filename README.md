@@ -1,5 +1,39 @@
 # testfenil.github.io
 
+// When Change the Language in beta
+
+        fun setAppLocale(activity: Activity, languageCode: String) {
+            App.putString(LANGUAGE_KEY, languageCode)
+            val locale = Locale(languageCode)
+            Locale.setDefault(locale)
+            val configuration = Configuration()
+            configuration.setLocale(locale)
+            activity.resources.updateConfiguration(configuration, activity.resources.displayMetrics)
+        }
+        
+        build.gradl file
+        
+         bundle {
+                language {
+                    enableSplit = false
+                }
+            }
+        
+                list.add(LanguageModel("Arabic", false, "Ar", "عربي", "#CEE3F7"))
+            list.add(LanguageModel("English", false, "en", "English", "#DBF1DB"))
+            list.add(LanguageModel("French", false, "fr", "Français", "#CFF6E6"))
+            list.add(LanguageModel("German", false, "de", "Deutsch", "#F7DBD2"))
+            list.add(LanguageModel("Japanese", false, "ja", "日本語", "#FDF2D2"))
+            list.add(LanguageModel("Korean", false, "ko", "한국인", "#D7F0F4"))
+            list.add(LanguageModel("Portuguese", false, "pt", "Português", "#E4DBDB"))
+            list.add(LanguageModel("Swedish", false, "sv", "svenska", "#E8D2FD"))
+            list.add(LanguageModel("Hindi", false, "hi", "हिन्दी", "#F7DBD2"))
+        
+             // for Arabic in menifest file
+        
+               tools:replace="android:supportsRtl"
+               android:supportsRtl="false"
+               
 // Firebase Event Debug
 
         adb shell setprop debug.firebase.analytics.app package_name

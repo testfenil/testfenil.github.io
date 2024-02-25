@@ -1,6 +1,17 @@
 # testfenil.github.io
 
 
+// File path save as a bitmap to pdf & file to bitmap
+
+          fun File.toBmp(): Bitmap = BitmapFactory.decodeFile(absolutePath, BitmapFactory.Options())
+
+
+           val photoPrinter = PrintHelper(this@SaveActivity)
+                          photoPrinter.scaleMode = PrintHelper.SCALE_MODE_FIT
+                          imagePath?.let {
+                              photoPrinter.printBitmap(getString(R.string.app_name), bitmap!!)
+                          }
+
 // Facebook Shimmer layout
 
           implementation 'com.facebook.shimmer:shimmer:0.5.0'

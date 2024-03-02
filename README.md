@@ -1,5 +1,25 @@
 # testfenil.github.io
 
+// set statusbar color
+
+           fun setStatusBarGradiant(
+               activity: Activity,
+               NavigationBarColor: Int?,
+               mSYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION: Boolean?
+           ) {
+               if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                   val window = activity.window
+                   val background: Drawable = activity.resources.getDrawable(R.drawable.ic_top_bar)
+                   window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+           //            window.statusBarColor = activity.resources.getColor(android.R.color.transparent)
+                   window.navigationBarColor = activity.resources.getColor(NavigationBarColor!!)
+                   window.setBackgroundDrawable(background)
+                   if (mSYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION == true){
+                       window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+                   }
+               }
+           }
+
 // Drawable to Bitmap
 
            private fun drawableToBitmap(drawable: Drawable, v: View): Bitmap {

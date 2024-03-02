@@ -1,5 +1,33 @@
 # testfenil.github.io
 
+// Drawable to Bitmap
+
+           private fun drawableToBitmap(drawable: Drawable, v: View): Bitmap {
+                   val bitmap: Bitmap
+           
+                   if (drawable is BitmapDrawable) {
+                       if (drawable.bitmap != null) return drawable.bitmap
+           
+                   } else if (drawable is GradientDrawable) {
+                       bitmap = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888)
+                       val canvas = Canvas(bitmap)
+                       drawable.setBounds(0, 0, canvas.width, canvas.height)
+                       drawable.draw(canvas)
+                       return bitmap
+                   }
+           
+                   bitmap = if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+                       Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) // Single color bitmap will be created of 1x1 pixel
+                   } else {
+                       Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+                   }
+                   val canvas = Canvas(bitmap)
+                   drawable.setBounds(0, 0, canvas.width, canvas.height)
+                   drawable.draw(canvas)
+                   return bitmap
+               }
+    
+
 // Custom Native Ad Layout
 
            <?xml version="1.0" encoding="utf-8"?>

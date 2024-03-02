@@ -1,5 +1,8 @@
 # testfenil.github.io
 
+// Older Android Studio All versions
+
+           https://developer.android.com/studio/emulator_archive
 
 // File path save as a bitmap to pdf & file to bitmap
 

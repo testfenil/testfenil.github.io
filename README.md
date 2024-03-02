@@ -1,5 +1,10 @@
 # testfenil.github.io
 
+// attractive Native ad layouts github online
+           
+           https://github.com/DevHamza090/Admob-AppLovin/tree/master/app/src/main/res/layout
+           https://github.com/googleads/googleads-mobile-android-native-templates/tree/main/nativetemplates/src/main/res/layout
+
 // set statusbar color
 
            fun setStatusBarGradiant(

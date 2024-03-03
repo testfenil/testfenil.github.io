@@ -1,5 +1,1286 @@
 # testfenil.github.io
 
+// Simple Exit Dialog
+
+            fun simpleExistDialog(
+                   context: Activity,
+               ) {
+                   val title = context.getString(R.string.exit)
+                   val subTitle = context.getString(R.string.are_you_sure_want_to_exit)
+                   MaterialAlertDialogBuilder(context).setTitle(title).setMessage(subTitle)
+                       .setPositiveButton(context.getString(R.string.exit)) { _, _ ->
+                           AppNavigator.finish(context)
+                       }.setNegativeButton(context.getString(R.string.no)) { _, _ ->
+                       }.show()
+               }
+
+// InApp Review & inAppReview
+
+    implementation("com.google.android.play:review-ktx:2.0.1")
+
+           fun Activity.inAppGoogleReview() {
+               try {
+                   val manager = ReviewManagerFactory.create(this)
+                   val request = manager.requestReviewFlow()
+                   request.addOnCompleteListener { task ->
+                       if (task.isSuccessful) {
+                           val reviewInfo = task.result
+                           val flow = manager.launchReviewFlow(this, reviewInfo)
+                           flow.addOnCompleteListener { _ ->
+           
+                           }
+                       } else {
+                           @ReviewErrorCode val reviewErrorCode =
+                               (task.exception as ReviewException).errorCode
+                           Timber.d("error in app review code %d ", reviewErrorCode)
+                       }
+                   }
+               } catch (e: Exception) {
+                   Timber.e(e.stackTraceToString())
+               }
+           }
+
+// material lib views
+
+            <com.google.android.material.button.MaterialButton
+                   android:id="@+id/btn_allow"
+                   android:layout_width="0dp"
+                   android:layout_height="wrap_content"
+                   android:layout_marginHorizontal="8dp"
+                   android:layout_marginTop="16dp"
+                   app:cornerRadius="@dimen/dimen_8x"
+                   app:layout_constraintWidth_percent="0.7"
+                   android:text="@string/allow"
+                   android:textColor="?attr/colorTertiary"
+                   app:backgroundTint="@android:color/transparent"
+                   app:layout_constraintEnd_toEndOf="@+id/textView2"
+                   app:layout_constraintStart_toStartOf="@+id/textView2"
+                   app:layout_constraintTop_toBottomOf="@+id/textView2"
+                   app:strokeColor="?attr/colorTertiary"
+                   app:strokeWidth="2dp" />
+        
+            <com.google.android.material.materialswitch.MaterialSwitch
+                   android:id="@+id/switch_select"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_gravity="end"
+                   android:layout_marginEnd="16dp" />
+                   
+             <com.google.android.material.textfield.TextInputLayout
+                   android:id="@+id/textInputEditText"
+                   android:layout_width="0dp"
+                   android:layout_height="wrap_content"
+                   android:backgroundTint="?attr/colorOnSecondary"
+                   android:inputType="textWebEmailAddress"
+                   app:endIconMode="clear_text"
+                   app:endIconTint="?attr/colorSecondary"
+                   app:boxCornerRadiusTopEnd="@dimen/dimen_16x"
+                   app:boxCornerRadiusBottomEnd="@dimen/dimen_16x"
+                   app:boxCornerRadiusBottomStart="@dimen/dimen_16x"
+                   app:boxCornerRadiusTopStart="@dimen/dimen_16x"
+                   app:endIconDrawable="@drawable/close"
+                   android:padding="@dimen/dimen_8x"
+                   app:layout_constraintEnd_toEndOf="parent"
+                   app:layout_constraintStart_toStartOf="parent"
+                   app:layout_constraintTop_toBottomOf="@id/txt_enter_current_email_label"
+                   app:layout_constraintWidth_percent="0.80">
+           
+                   <com.google.android.material.textfield.TextInputEditText
+                       android:id="@+id/editTextEmail"
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:inputType="text"
+                       android:maxLines="1" />
+               </com.google.android.material.textfield.TextInputLayout>
+               
+            <androidx.constraintlayout.helper.widget.Grid
+                   android:id="@+id/flow"
+                   android:layout_width="0dp"
+                   android:layout_height="0dp"
+                   android:layout_margin="16dp"
+                   android:padding="16dp"
+                   android:textAlignment="center"
+                   app:constraint_referenced_ids="key_1, key_2, key_3, key_4,key_5,key_6,key_7,key_8,key_9,key_none,key_0,key_x"
+                   app:grid_columns="3"
+                   app:grid_horizontalGaps="24dp"
+                   app:grid_rows="4"
+                   app:grid_verticalGaps="24dp"
+                   app:layout_constraintBottom_toBottomOf="parent"
+                   app:layout_constraintDimensionRatio="11:12"
+                   app:layout_constraintLeft_toLeftOf="parent"
+                   app:layout_constraintRight_toRightOf="parent" />
+                   
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                   android:id="@+id/floating_action_button"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_margin="32dp"
+                   android:contentDescription="@string/add_files"
+                   app:layout_constraintBottom_toBottomOf="parent"
+                   app:layout_constraintEnd_toEndOf="parent"
+                   app:srcCompat="@drawable/ic_plus_vector" />
+                   
+              <androidx.appcompat.widget.SearchView
+                           android:id="@+id/search_view"
+                           android:layout_width="0dp"
+                           android:layout_height="0dp"
+                           android:layout_marginStart="8dp"
+                           android:layout_marginEnd="16dp"
+                           android:background="@drawable/search_bg"
+                           android:backgroundTint="?attr/colorSurfaceVariant"
+                           android:focusableInTouchMode="true"
+                           android:textAppearance="?attr/textAppearanceCaption"
+                           android:visibility="gone"
+                           app:closeIcon="@drawable/close"
+                           app:iconifiedByDefault="false"
+                           app:layout_constraintBottom_toBottomOf="@+id/btn_back"
+                           app:layout_constraintEnd_toEndOf="parent"
+                           app:layout_constraintHeight_percent="0.65"
+                           app:layout_constraintStart_toEndOf="@id/btn_back"
+                           app:layout_constraintTop_toTopOf="@+id/btn_back"
+                           app:queryBackground="@null"
+                           app:queryHint="@string/search_hint"
+                           app:searchIcon="@drawable/search"
+                           tools:visibility="visible" />
+           
+
+             <com.google.android.material.progressindicator.LinearProgressIndicator
+                   android:id="@+id/progress"
+                   android:layout_width="0dp"
+                   android:layout_height="wrap_content"
+                   android:layout_marginTop="8dp"
+                   android:padding="8dp"
+                   app:layout_constraintLeft_toLeftOf="parent"
+                   app:layout_constraintRight_toRightOf="parent"
+                   app:layout_constraintTop_toBottomOf="@id/txt_progress"
+                   tools:progress="30" />
+                   
+            <com.google.android.material.divider.MaterialDivider
+                   android:layout_width="0dp"
+                   android:layout_height="1dp"
+                   android:layout_marginTop="@dimen/dimen_8x"
+                   app:dividerColor="?attr/colorOnSurfaceVariant"
+                   app:layout_constraintEnd_toEndOf="parent"
+                   app:layout_constraintStart_toStartOf="parent"
+                   app:layout_constraintTop_toBottomOf="@id/sort_by_group" />
+                   
+
+        <RadioGroup
+            android:id="@+id/radio_group"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="8dp"
+            app:layout_constraintLeft_toLeftOf="@id/txt_header"
+            app:layout_constraintRight_toRightOf="@id/txt_header"
+            app:layout_constraintTop_toBottomOf="@id/txt_header">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_default"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
+                android:text="@string/default_lang"
+                android:textAppearance="?attr/textAppearanceBody2" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_english"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:paddingHorizontal="8dp"
+                android:text="@string/english"
+                android:textAppearance="?attr/textAppearanceBody2" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_portuguese"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
+                android:text="@string/portuguese"
+                android:textAppearance="?attr/textAppearanceBody2" />
+
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_francois"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
+                android:text="@string/francois"
+                android:textAppearance="?attr/textAppearanceBody2" />
+
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_hindi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
+                android:text="@string/hindi"
+                android:textAppearance="?attr/textAppearanceBody2" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radio_turkle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
+                android:text="@string/turkle"
+                android:textAppearance="?attr/textAppearanceBody2" />
+        </RadioGroup>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_ok"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/ok"
+            app:cornerRadius="@dimen/dimen_8x"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/radio_group"
+            app:layout_constraintWidth_percent="0.9" />
+            
+           <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+               xmlns:app="http://schemas.android.com/apk/res-auto"
+               style="@style/Widget.Material3.CardView.Filled"
+               android:layout_width="wrap_content"
+               android:layout_marginHorizontal="@dimen/dimen_16x"
+               app:cardBackgroundColor="?attr/colorSurface"
+               app:cardCornerRadius="@dimen/dimen_16x"
+               app:cardElevation="@dimen/dimen_8x"
+               app:cardUseCompatPadding="true"
+               android:layout_height="wrap_content"
+               android:layout_gravity="center">
+
+
+               </com.google.android.material.card.MaterialCardView>
+
+           <com.google.android.material.appbar.MaterialToolbar
+                   android:id="@+id/toolbar"
+                   android:layout_width="0dp"
+                   android:layout_height="wrap_content"
+                   app:layout_constraintEnd_toEndOf="parent"
+                   app:layout_constraintStart_toStartOf="parent"
+                   app:layout_constraintTop_toTopOf="parent"
+                   app:navigationIcon="@drawable/arrow_back"
+                   app:navigationIconTint="?attr/colorOnBackground"
+                   app:title="@string/private_files" />
+
+
+
+// RecyclerView BaseAdapter
+
+            rvitemid.adapter =
+                BaseAdapter(layoutResId = R.layout.rv_item, onBind = { itemView, item ->
+                    // Implement logic for binding data to views
+                }, onItemClickListener = { view, viewHolder ->
+                    val position = viewHolder.bindingAdapterPosition
+                }, diffCallback = object : DiffUtil.ItemCallback<String>() {
+                    override fun areItemsTheSame(oldItem: String, newItem: String): Boolean {
+                        // Implement logic to check if items are the same
+                        return oldItem == newItem // Example: Assuming MyModel has an 'id' property
+                    }
+
+                    override fun areContentsTheSame(oldItem: String, newItem: String): Boolean {
+                        // Implement logic to check if item contents are the same
+                        return oldItem == newItem
+                    }
+                })
+                
+           class BaseAdapter<T>(
+               private val layoutResId: Int,
+               private val onBind: (View, T) -> Unit,
+               private val onItemClickListener: (
+                   View,
+                   BaseAdapter<T>.BaseViewHolder,
+               ) -> Unit,
+               diffCallback: DiffUtil.ItemCallback<T>,
+           ) : ListAdapter<T, BaseAdapter<T>.BaseViewHolder>(diffCallback) {
+           
+               override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
+                   val itemView = LayoutInflater.from(parent.context).inflate(layoutResId, parent, false)
+                   return BaseViewHolder(itemView)
+               }
+           
+               override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
+                   val item = getItem(position)
+                   onBind(holder.itemView, item)
+               }
+           
+               inner class BaseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+           
+                   init {
+                       onItemClickListener(itemView, this)
+                   }
+               }
+           
+               fun getListItem(position: Int): T = getItem(position)
+           }
+
+           
+           
+
+// EasyPathHelper
+
+
+           object EasyPathHelper {
+           
+           fun ImageFilterView.setBorder(attr : Int) {
+               val borderThickness = 8 // Set the desired border thickness in pixels
+               val borderDrawable = ShapeDrawable(RectShape())
+               val context = this.context
+               val colorRes = EasyAndroidHelper.getColorFromThemeAttr(
+                   context, attr)
+               borderDrawable.paint.apply {
+                   style = Paint.Style.STROKE
+                   strokeWidth = borderThickness.toFloat()
+                   color = colorRes
+               }
+               background = borderDrawable
+           }
+           
+
+           
+                      fun MaterialCardView.setRoundedCorners(radiusDp: Float) {
+               val radiusPx = (radiusDp * Resources.getSystem().displayMetrics.density).toInt()
+           
+               val shapeAppearanceModel = if (radiusDp > 0f) {
+                   ShapeAppearanceModel.builder()
+                       .setTopLeftCorner(CornerFamily.ROUNDED, radiusPx.toFloat())
+                       .setTopRightCorner(CornerFamily.ROUNDED, radiusPx.toFloat())
+                       .setBottomLeftCorner(CornerFamily.ROUNDED, radiusPx.toFloat())
+                       .setBottomRightCorner(CornerFamily.ROUNDED, radiusPx.toFloat())
+                       .build()
+               } else {
+                   ShapeAppearanceModel.builder().build()
+               }
+           
+               this.shapeAppearanceModel = shapeAppearanceModel
+           }
+
+           
+                      fun ViewPager2.onPageChange(fn: (Int) -> Unit) {
+               registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                   override fun onPageSelected(position: Int) {
+                       super.onPageSelected(position)
+                       fn(position)
+                   }
+               })
+           }
+           
+
+                      fun View.keyboardWithFocus() {
+           
+               requestFocus()
+               if (hasWindowFocus()) {
+                   showTheKeyboardNow()
+               } else {
+                   viewTreeObserver.addOnWindowFocusChangeListener(object :
+                       ViewTreeObserver.OnWindowFocusChangeListener {
+                       override fun onWindowFocusChanged(hasFocus: Boolean) {
+                           if (hasFocus) {
+                               this@keyboardWithFocus.showTheKeyboardNow()
+                               viewTreeObserver.removeOnWindowFocusChangeListener(this)
+                           }
+                       }
+                   })
+               }
+           }
+
+                                 fun View.showTheKeyboardNow() {
+               if (isFocused) {
+                   post {
+                       val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                       imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+                   }
+               }
+           }
+           
+           fun View.snackBar(resId: Any) {
+               val message = if (resId is Int) context.getString(resId) else resId
+               Snackbar.make(this, message.toString(), Snackbar.LENGTH_SHORT).show()
+           }
+           
+           fun View.snackBar(message: String) {
+               Snackbar.make(this, message, Snackbar.LENGTH_SHORT).show()
+           }
+
+                      fun SearchView.openKeyboard() {
+               requestFocus()
+               val inputMethodManager =
+                   context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+               inputMethodManager.showSoftInput(this.findFocus(), InputMethodManager.SHOW_IMPLICIT)
+           }
+           
+           
+           fun SearchView.closeKeyboard() {
+               clearFocus()
+               val inputMethodManager =
+                   context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+               inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
+           }
+
+           fun Context.showBottomSheetDialog(view: View): BottomSheetDialog {
+               val bottomSheetDialog = BottomSheetDialog(this)
+               bottomSheetDialog.setContentView(view)
+           
+               // Set up BottomSheetDialog to open in full-screen mode
+               val layoutParams = view.layoutParams
+               val windowHeight = resources.displayMetrics.heightPixels
+               layoutParams.height = windowHeight
+               view.layoutParams = layoutParams
+           
+               // Disable dragging behavior
+               val behavior = BottomSheetBehavior.from(view.parent as View)
+               behavior.isDraggable = false
+               bottomSheetDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+           
+           
+               // Make the BottomSheetDialog not focusable
+               bottomSheetDialog.window?.setFlags(
+                   WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                   WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+               )
+           
+               // Set the window layout to match parent
+               val layoutParamsForDialog = WindowManager.LayoutParams().apply {
+                   copyFrom(bottomSheetDialog.window?.attributes)
+                   width = WindowManager.LayoutParams.MATCH_PARENT
+                   height = WindowManager.LayoutParams.MATCH_PARENT
+               }
+               bottomSheetDialog.window?.attributes = layoutParamsForDialog
+           
+               // Clear the not focusable flag to show the dialog
+               bottomSheetDialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+               bottomSheetDialog.show()
+           
+               return bottomSheetDialog
+           }
+           
+
+                                 
+           val Context.rootPackageName: String get() = this.applicationContext.packageName
+           
+           val Context.fileProvider get() = this.rootPackageName + ".fileprovider"
+
+           val String.decodeString
+               get() = kotlin.run {
+                   Base64.decode(this, Base64.DEFAULT).toString(charset("UTF-8"))
+               }
+           
+           val Double.readableRound: Double get() = (this * 100.0).roundToInt() / 100.0
+           
+           val String.decrypt64
+               get() = kotlin.run {
+                   val data = Base64.decode(this, Base64.NO_WRAP); String(
+                   data,
+                   Charsets.UTF_8
+               )
+               }
+           
+           val String.md5
+               get() = MessageDigest.getInstance("MD5").digest(this.toByteArray(Charsets.UTF_8)).toHex()
+           
+           fun ByteArray.toHex() = joinToString(separator = "") { byte -> "%02x".format(byte) }
+
+               private fun getPath(context: Context, uri: Uri?): String {
+                   val path: String?
+                   val projection = arrayOf(MediaStore.Files.FileColumns.DATA)
+                   val cursor = context.contentResolver.query(uri!!, projection, null, null, null)
+                   if (cursor == null) {
+                       path = uri.path
+                   } else {
+                       cursor.moveToFirst()
+                       val columnIndex = cursor.getColumnIndexOrThrow(projection[0])
+                       path = cursor.getString(columnIndex)
+                       cursor.close()
+                   }
+                   return if (path.isNullOrEmpty()) uri.toString() else path
+               }
+           
+               private fun getDataColumn(
+                   context: Context,
+                   uri: Uri?, selection: String?,
+                   selectionArgs: Array<String>?,
+               ): String? {
+                   var cursor: Cursor? = null
+                   val column = "_data"
+                   val projection = arrayOf(column)
+                   try {
+                       if (uri == null) return null
+                       cursor = context.contentResolver.query(
+                           uri,
+                           projection,
+                           selection,
+                           selectionArgs,
+                           null
+                       )
+                       if (cursor != null && cursor.moveToFirst()) {
+                           val index = cursor.getColumnIndexOrThrow(column)
+                           return cursor.getString(index)
+                       }
+                   } finally {
+                       cursor?.close()
+                   }
+                   return null
+               }
+           
+               private fun isExternalStorageDocument(uri: Uri): Boolean =
+                   "com.android.externalstorage.documents" == uri.authority
+           
+               private fun isDownloadsDocument(uri: Uri): Boolean =
+                   "com.android.providers.downloads.documents" == uri.authority
+           
+               private fun isMediaDocument(uri: Uri): Boolean =
+                   "com.android.providers.media.documents" == uri.authority
+           
+               private fun isGooglePhotosUri(uri: Uri): Boolean =
+                   "com.google.android.apps.photos.content" == uri.authority
+           
+               fun getRealPathFromURI(context: Context, uri: Uri): String? {
+                   when {
+                       // DocumentProvider
+                       DocumentsContract.isDocumentUri(context, uri) -> {
+                           when {
+                               // ExternalStorageProvider
+                               isExternalStorageDocument(uri) -> {
+                                   val docId = DocumentsContract.getDocumentId(uri)
+                                   val split = docId.split(":").toTypedArray()
+                                   val type = split[0]
+                                   // This is for checking Main Memory
+                                   return if ("primary".equals(type, ignoreCase = true)) {
+                                       if (split.size > 1) Environment.getExternalStorageDirectory()
+                                           .toString() + "/" + split[1]
+                                       else Environment.getExternalStorageDirectory().toString() + "/"
+                                       // This is for checking SD Card
+                                   } else "storage" + "/" + docId.replace(":", "/")
+                               }
+           
+                               isDownloadsDocument(uri) -> {
+                                   val fileName = getPath(context, uri)
+                                   if (fileName != null) {
+                                       return Environment.getExternalStorageDirectory()
+                                           .toString() + "/Download/" + fileName
+                                   }
+                                   var id = DocumentsContract.getDocumentId(uri)
+                                   if (id.startsWith("raw:")) {
+                                       id = id.replaceFirst("raw:".toRegex(), "")
+                                       val file = File(id)
+                                       if (file.exists()) return id
+                                   }
+                                   val contentUri = ContentUris.withAppendedId(
+                                       Uri.parse("content://downloads/public_downloads"),
+                                       java.lang.Long.valueOf(id)
+                                   )
+                                   return getDataColumn(context, contentUri, null, null)
+                               }
+           
+                               isMediaDocument(uri) -> {
+                                   val docId = DocumentsContract.getDocumentId(uri)
+                                   val split = docId.split(":").toTypedArray()
+                                   val type = split[0]
+                                   var contentUri: Uri? = null
+                                   when (type) {
+                                       "image" -> {
+                                           contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                                       }
+           
+                                       "video" -> {
+                                           contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                                       }
+           
+                                       "audio" -> {
+                                           contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                                       }
+                                   }
+                                   val selection = "_id=?"
+                                   val selectionArgs = arrayOf(split[1])
+                                   return getDataColumn(context, contentUri, selection, selectionArgs)
+                               }
+                           }
+                       }
+           
+                       "content".equals(uri.scheme, ignoreCase = true) -> {
+                           // Return the remote address
+                           return if (isGooglePhotosUri(uri)) uri.lastPathSegment else getDataColumn(
+                               context,
+                               uri,
+                               null,
+                               null
+                           )
+                       }
+           
+                       "file".equals(uri.scheme, ignoreCase = true) -> {
+                           return uri.path
+                       }
+                   }
+                   return null
+               }
+           
+               fun getNameDocUri(context: Context, docUriPath: String): String? {
+                   return getRealPathFromURI(context, Uri.parse(docUriPath))
+               }
+           }
+
+// Android Helper Class
+
+                        inline fun getMediaFileFromPath(
+                   applicationContext: Application,
+                   filePath: String,
+                   onMediaFileProcessed: (id: Long, name: String, path: String, contentUri: Uri) -> Unit,
+               ) {
+                   val context = applicationContext
+                   val contentResolver = context.contentResolver
+           
+                   val projection = arrayOf(
+                       MediaStore.Files.FileColumns._ID,
+                       MediaStore.Files.FileColumns.DISPLAY_NAME,
+                       MediaStore.Files.FileColumns.DATA
+                   )
+           
+                   val selection = "${MediaStore.Files.FileColumns.DATA} = ?"
+                   val selectionArgs = arrayOf(filePath)
+           
+                   val cursor = contentResolver.query(
+                       MediaStore.Files.getContentUri("external"),
+                       projection,
+                       selection,
+                       selectionArgs,
+                       null
+                   )
+           
+                   cursor?.use {
+                       if (it.moveToFirst()) {
+                           val id = it.getLong(it.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID))
+                           val displayName =
+                               it.getString(it.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME))
+                           val path = it.getString(it.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA))
+                           val contentUri = ContentUris.withAppendedId(
+                               MediaStore.Files.getContentUri("external"),
+                               id.toLong()
+                           )
+                           onMediaFileProcessed(id, displayName, path, contentUri)
+                       }
+                   }
+               }
+               
+           val File.isVideo
+               get() = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+                   ?.startsWith("video", true) ?: false
+           
+           val File.isGif
+               get() = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)?.endsWith("gif", true)
+                   ?: false
+           
+           val File.isAudio
+               get() = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+                   ?.startsWith("audio", true) ?: false
+           
+           val File.isImage: Boolean
+               get() = kotlin.run {
+                   val mimeTypeFromExtension =
+                       MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: return@run false
+                   when {
+                       mimeTypeFromExtension.endsWith("jpeg") || mimeTypeFromExtension.endsWith("bmp") || mimeTypeFromExtension.endsWith(
+                           "png"
+                       ) || mimeTypeFromExtension.endsWith("jpg") -> true
+           
+                       else -> false
+                   }
+               }
+           
+           
+           val File.lastModifiedFormattedString: String
+               get() = kotlin.run {
+           
+                   val format = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+                   val date = Date(lastModified())
+                   format.format(date)
+               }
+           
+           
+           val File.sizeFormattedString: String
+               get() = kotlin.run {
+                   val fileSize = this.length()
+                   if (fileSize <= 0) {
+                       return "0 B"
+                   }
+                   val units = arrayOf("B", "KB", "MB", "GB", "TB")
+                   val digitGroups = (Math.log10(fileSize.toDouble()) / Math.log10(1024.0)).toInt()
+           
+                   val decimalFormat = DecimalFormat("#,##0.00")
+                   "${
+                       decimalFormat.format(
+                           fileSize / Math.pow(
+                               1024.0, digitGroups.toDouble()
+                           )
+                       )
+                   } ${units[digitGroups]}"
+               }
+           
+           val List<File>.sizeFormattedString: String
+               get() = run {
+                   val totalSize = sumOf { file -> file.length() }
+                   if (totalSize <= 0) {
+                       return "0 B"
+                   }
+                   val units = arrayOf("B", "KB", "MB", "GB", "TB")
+                   val digitGroups = (Math.log10(totalSize.toDouble()) / Math.log10(1024.0)).toInt()
+           
+                   val decimalFormat = DecimalFormat("#,##0.00")
+                   "${
+                       decimalFormat.format(
+                           totalSize / Math.pow(
+                               1024.0, digitGroups.toDouble()
+                           )
+                       )
+                   } ${units[digitGroups]}"
+               }
+           
+           
+           suspend fun File.bitmap(context: Context): Bitmap {
+               return withContext(IO) {
+                   Glide.with(context).asBitmap().load(this@bitmap.absolutePath)
+                       .diskCacheStrategy(DiskCacheStrategy.ALL).submit().get()
+               }
+           }
+           
+           suspend fun File.bitmap(context: Context, width: Int, height: Int): Bitmap {
+               return withContext(IO) {
+                   Glide.with(context).asBitmap().load(this@bitmap.absolutePath)
+                       .diskCacheStrategy(DiskCacheStrategy.ALL).submit().get()
+               }
+           }
+           
+           val File.videoResolution: Pair<Int, Int>
+               get() = kotlin.run {
+                   val retriever = MediaMetadataRetriever()
+                   retriever.setDataSource(this.absolutePath)
+                   val width =
+                       retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt() ?: 0
+                   val height =
+                       retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt()
+                           ?: 0
+                   return Pair(width, height)
+               }
+           
+           suspend fun File.imageResolutionFormattedString(context: Context): String {
+               val bitmap = bitmap(context)
+               val width = bitmap.width
+               val height = bitmap.height
+               val megapixels = (width.toDouble() * height.toDouble()) / 1000000.0
+               return "${width}x${height} (${String.format("%.1f", megapixels)}MP)"
+           }
+           
+           val File.videoResolutionFormattedString
+               get() : String = kotlin.run {
+                   val (width, height) = videoResolution
+                   val megapixels = (width.toDouble() * height.toDouble()) / 1000000.0
+                   "${width}x${height} (${String.format("%.1f", megapixels)}MP)"
+               }
+           
+           
+           suspend fun File.resolutionFormattedString(context: Context): String {
+               return when {
+                   isImage -> imageResolutionFormattedString(context)
+                   isVideo -> this.videoResolutionFormattedString
+                   else -> imageResolutionFormattedString(context)
+               }
+           }
+           
+           fun File.scanStorage(context: Context) {
+               return MediaScannerConnection.scanFile(context, arrayOf(this.path), null, null)
+           }
+           
+           fun List<File>.scanStorage(context: Context) {
+               val files = this.map { it.path }.toTypedArray()
+               MediaScannerConnection.scanFile(context, files, null, null)
+           }
+           
+           
+           val File.contentUri: Uri
+               get() = kotlin.run {
+                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                       when {
+                           isImage -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                           isVideo -> MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                           isAudio -> MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                           else -> MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+                       }
+                   } else {
+                       when {
+                           isImage -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                           isVideo -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                           isAudio -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                           else -> MediaStore.Files.getContentUri("external")
+                       }
+           
+                   }
+               }
+           
+           
+
+           enum class WallpaperType {
+               HOME_SCREEN_WALLPAPER,
+               LOCK_SCREEN_WALLPAPER,
+               HOME_AND_LOCK_SCREEN_WALLPAPER,
+           }
+
+                      object EasyAndroidHelper {
+                      
+                      
+                          suspend fun setWallpaper(
+                              context: Context,
+                              path: String,
+                              wallpaperType: WallpaperType,
+                          ) {
+                      
+                              val wallpaperManager = WallpaperManager.getInstance(context)
+                              withContext(Dispatchers.IO) {
+                      
+                                  val bitmap = File(path).bitmap(context)
+                      
+                                  when (wallpaperType) {
+                                      WallpaperType.HOME_SCREEN_WALLPAPER -> {
+                                          wallpaperManager.setBitmap(bitmap)
+                                      }
+                      
+                                      WallpaperType.LOCK_SCREEN_WALLPAPER -> {
+                                          wallpaperManager.setBitmap(
+                                              bitmap, null, false, WallpaperManager.FLAG_LOCK
+                                          )
+                      
+                                      }
+                      
+                                      WallpaperType.HOME_AND_LOCK_SCREEN_WALLPAPER -> {
+                                          wallpaperManager.setBitmap(bitmap)
+                                          wallpaperManager.setBitmap(
+                                              bitmap, null, false, WallpaperManager.FLAG_LOCK
+                                          )
+                                      }
+                                  }
+                      
+                              }
+                          }
+                      
+                          fun startFileShareIntent(
+                              context: Context,
+                              filePath: String,
+                              title: String,
+                          ) {
+                              val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                  type = "*/*"
+                                  flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                  putExtra(Intent.EXTRA_TEXT, title);
+                                  val fileURI = FileProvider.getUriForFile(
+                                      context, context.fileProvider, File(filePath)
+                                  )
+                                  putExtra(Intent.EXTRA_STREAM, fileURI)
+                              }
+                              context.startActivity(Intent.createChooser(shareIntent, title))
+                          }
+                      
+                          fun startMultipleFilesShareIntent(
+                              context: Context,
+                              filePath: List<String>,
+                              title: String,
+                          ) {
+                              val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                                  type = "*/*"
+                                  putExtra(Intent.EXTRA_TEXT, title);
+                                  val fileURI = filePath.map { path ->
+                                      FileProvider.getUriForFile(
+                                          context, context.fileProvider, File(path)
+                                      )
+                                  }
+                                  flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                  val fileArrayList = arrayListOf<Uri>()
+                                  fileArrayList.addAll(fileURI)
+                                  putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileArrayList)
+                              }
+                              context.startActivity(Intent.createChooser(shareIntent, title))
+                          }
+                      
+                          fun sendGmail(
+                              context: Context,
+                              subject: String,
+                              body: String,
+                              toEmail: String,
+                              recipientEmail: List<String> = emptyList(),
+                          ) {
+                              try {
+                                  val intent = Intent(Intent.ACTION_SEND).apply {
+                                      data = Uri.parse("mailto:$toEmail")
+                                      if (recipientEmail.isNotEmpty()) putExtra(
+                                          Intent.EXTRA_EMAIL, recipientEmail.toTypedArray()
+                                      )
+                                      putExtra(Intent.EXTRA_SUBJECT, subject)
+                                      putExtra(Intent.EXTRA_TEXT, body)
+                                      setPackage(EasyGet.gmailPackageName)
+                                  }
+                                  context.startActivity(intent)
+                              } catch (e: ActivityNotFoundException) {
+                                  val fallbackIntent = Intent(Intent.ACTION_VIEW).apply {
+                                      data =
+                                          Uri.parse("mailto:$toEmail?subject=${Uri.encode(subject)}&body=${Uri.encode(body)}")
+                                  }
+                                  context.startActivity(fallbackIntent)
+                              } catch (e: Exception) {
+                                  Timber.e(e.stackTraceToString())
+                              }
+                          }
+                      
+                          fun sendGmailWIIthImages(
+                              context: Context,
+                              subject: String,
+                              body: String,
+                              toEmail: String,
+                              fileURI: List<String> = emptyList(),
+                          ) {
+                              try {
+                                  val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                                      type = "message/rfc822"
+                                      putExtra(Intent.EXTRA_EMAIL, arrayOf(toEmail))
+                                      putExtra(Intent.EXTRA_SUBJECT, subject)
+                                      putExtra(Intent.EXTRA_TEXT, body)
+                                      val fileArrayList = arrayListOf<Uri>()
+                                      if (fileURI.isNotEmpty()) {
+                                          val uriFromPath = EasyMediaStorageHelper.getUriFromPath(context, fileURI)
+                                          fileArrayList.addAll(uriFromPath)
+                                          putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileArrayList)
+                                      }
+                                      flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                      setPackage(EasyGet.gmailPackageName)
+                                  }
+                                  context.startActivity(intent)
+                              } catch (e: Exception) {
+                                  Timber.e(e, "Failed to send email to Gmail")
+                              }
+                          }
+                      
+                          fun shareAppWithLink(context: Context, appNameResId: Int) {
+                              val applicationContext = context.applicationContext
+                              try {
+                                  val shareIntent = Intent(Intent.ACTION_SEND)
+                                  shareIntent.type = "text/plain"
+                                  shareIntent.putExtra(
+                                      Intent.EXTRA_SUBJECT, applicationContext.resources.getString(appNameResId)
+                                  )
+                                  var shareMessage = "\nLet me recommend you this application\n\n"
+                                  shareMessage = """
+                              ${shareMessage}https://play.google.com/store/apps/details?id=${context.rootPackageName}
+                              
+                              """.trimIndent()
+                                  shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
+                                  context.startActivity(Intent.createChooser(shareIntent, "choose one"))
+                              } catch (e: Exception) {
+                                  Timber.e(e.stackTraceToString())
+                              }
+                          }
+                      
+                          fun openMediaShowIntent(context: Context, path: String) {
+                              try {
+                                  val file = File(path)
+                                  val intent = Intent(Intent.ACTION_VIEW) //
+                                      .setDataAndType(
+                                          FileProvider.getUriForFile(context, context.fileProvider, file),
+                                          if (file.name.endsWith(".mp4")) "video/*" else "image/*"
+                                      ).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                  context.startActivity(intent)
+                              } catch (e: Exception) {
+                                  Timber.e(e.stackTraceToString())
+                              }
+                          }
+                      
+                          fun getDrawableUri(context: Context, drawableId: Int): Uri? {
+                              return try {
+                                  val resources = context.resources
+                                  val uri = Uri.parse(
+                                      ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + resources.getResourcePackageName(
+                                          drawableId
+                                      ) + '/' + resources.getResourceTypeName(drawableId) + '/' + resources.getResourceEntryName(
+                                          drawableId
+                                      )
+                                  )
+                                  uri
+                              } catch (e: Resources.NotFoundException) {
+                                  Timber.e(e.stackTraceToString())
+                                  null
+                              }
+                          }
+                      
+                          fun getColorFromThemeAttr(context: Context, themeAttr: Int): Int {
+                              val typedValue = TypedValue()
+                              val theme = context.theme
+                              theme.resolveAttribute(themeAttr, typedValue, true)
+                              return ContextCompat.getColor(context, typedValue.resourceId)
+                          }
+                      
+                          fun setTintMenuIcon(context: Context, item: MenuItem, color: Int) {
+                              val normalDrawable = item.icon
+                              val wrapDrawable = DrawableCompat.wrap(normalDrawable!!)
+                              val colorFromThemeAttr = EasyAndroidHelper.getColorFromThemeAttr(context, color)
+                              DrawableCompat.setTint(wrapDrawable, colorFromThemeAttr)
+                              item.icon = wrapDrawable
+                          }
+                      
+                      
+                          fun setSearchViewSearchIconTint(
+                              searchView: SearchView,
+                              context: Context,
+                              colorResId: Int,
+                              fromAppTheme: Boolean = true,
+                          ) {
+                              try {
+                      //            val searchIcon =
+                      //                searchView.findViewById(androidx.appcompat.R.id.search_mag_icon) as ImageView
+                      //            val originalDrawable = searchIcon.drawable
+                      //            val wrappedDrawable = DrawableCompat.wrap(originalDrawable).mutate()
+                      //
+                      //            val color = if (fromAppTheme) getColorFromThemeAttr(context, colorResId)
+                      //            else ContextCompat.getColor(context, colorResId)
+                      //            DrawableCompat.setTint(wrappedDrawable, color)
+                      //            searchIcon.setImageDrawable(wrappedDrawable)
+                      //            val collapsedSearchPlate =
+                      //                searchView.findViewById(androidx.appcompat.R.id.search_plate)  as View
+                      //            val collapsedSearchIcon =
+                      //                collapsedSearchPlate.findViewById(androidx.appcompat.R.id.search_mag_icon) as ImageView
+                      //            collapsedSearchIcon.setImageDrawable(wrappedDrawable)
+                              } catch (e: Exception) {
+                                   Timber.e(e.stackTraceToString())
+                              }
+                          }
+                      
+                      
+                      }
+
+// BioMetricHelper 
+
+    implementation("androidx.biometric:biometric-ktx:1.2.0-alpha05")
+
+           val easyBioMetricHelper =
+                       EasyBioMetricHelper(requireActivity()).setTitle(getString(androidx.biometric.R.string.use_biometric_label))
+                           .setSubTitle(getString(androidx.biometric.R.string.biometric_or_screen_lock_prompt_message))
+                           .setDescription(getString(androidx.biometric.R.string.biometric_prompt_message))
+                           .build().onSuccess {
+                               viewModel.onEvent(LockerFolderViewModel.LockFolderEvent.OnBioMetricLogin(true))
+                           }.onFailure {
+                               toast(it)
+                           }
+
+           class EasyBioMetricHelper(
+               private val activity: FragmentActivity,
+           ) {
+               private lateinit var promptInfo: BiometricPrompt.PromptInfo
+               private lateinit var biometricPrompt: BiometricPrompt
+           
+               private var onSuccess: () -> Unit = { }
+               private var onFaiure: (String) -> Unit = { }
+           
+               private var mTitle = activity.getString(androidx.biometric.R.string.use_biometric_label)
+               private var mSubTitle =
+                   activity.getString(androidx.biometric.R.string.biometric_or_screen_lock_prompt_message)
+               private var mDescription =
+                   activity.getString(androidx.biometric.R.string.biometric_prompt_message)
+           
+           
+               fun build(): EasyBioMetricHelper {
+                   bioMetricResultListener()
+                   val biometricHardWareAvailable = isBiometricHardWareAvailable(activity)
+                   initPrompt(mTitle, mSubTitle, mDescription, biometricHardWareAvailable)
+                   return this
+               }
+           
+               private fun initPrompt(
+                   title: String,
+                   subtitle: String,
+                   description: String,
+                   setDeviceCred: Boolean,
+               ) {
+                   if (setDeviceCred) {
+                       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                           val authFlag =
+                               androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL or BiometricManager.Authenticators.BIOMETRIC_STRONG
+                           promptInfo =
+                               BiometricPrompt.PromptInfo.Builder().setTitle(title).setSubtitle(subtitle)
+                                   .setDescription(description).setAllowedAuthenticators(authFlag).build()
+                       } else {
+                           @Suppress("DEPRECATION") promptInfo =
+                               BiometricPrompt.PromptInfo.Builder().setTitle(title).setSubtitle(subtitle)
+                                   .setDescription(description).setDeviceCredentialAllowed(true).build()
+                       }
+                   } else {
+                       promptInfo = BiometricPrompt.PromptInfo.Builder().setTitle(title).setSubtitle(subtitle)
+                           .setDescription(description).setNegativeButtonText("Cancel").build()
+                   }
+           
+               }
+           
+               private fun bioMetricResultListener() {
+                   val executor = ContextCompat.getMainExecutor(activity)
+           
+                   biometricPrompt =
+                       BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
+                           override fun onAuthenticationSucceeded(
+                               result: BiometricPrompt.AuthenticationResult,
+                           ) {
+                               super.onAuthenticationSucceeded(result)
+                               onSuccess()
+                           }
+           
+                           override fun onAuthenticationFailed() {
+                               super.onAuthenticationFailed()
+                               onFaiure("Failed to unlock")
+                           }
+                       })
+               }
+           
+               fun setTitle(title: String): EasyBioMetricHelper {
+                   mTitle = title
+                   return this
+               }
+           
+               fun setSubTitle(subTitle: String): EasyBioMetricHelper {
+                   mSubTitle = subTitle
+                   return this
+               }
+           
+               fun setDescription(description: String): EasyBioMetricHelper {
+                   mDescription = description
+                   return this
+               }
+           
+               fun onSuccess(fn: () -> Unit): EasyBioMetricHelper {
+                   onSuccess = fn
+                   return this
+               }
+           
+               fun onFailure(fn: (String) -> Unit): EasyBioMetricHelper {
+                   onFaiure = fn
+                   return this
+               }
+
+                      inline fun ComponentActivity.onBackPress(
+               lifecycle: LifecycleOwner = this,
+               crossinline fn: () -> Unit,
+           ) {
+               onBackPressedDispatcher.addCallback(lifecycle, object : OnBackPressedCallback(true) {
+                   override fun handleOnBackPressed() {
+                       fn()
+                   }
+               })
+           }
+
+           
+               fun launchPrompt() {
+                   biometricPrompt.authenticate(promptInfo)
+               }
+           
+           
+               inner class EasyBioMatrixBuilder {
+           
+               }
+           
+               companion object {
+           
+                   fun isBiometricHardWareAvailable(context: Context): Boolean {
+                       var result = false
+                       val biometricManager = BiometricManager.from(context)
+           
+                       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                           when (biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL or BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+                               BiometricManager.BIOMETRIC_SUCCESS -> result = true
+                               BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> result = false
+                               BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> result = false
+                               BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> result = false
+                               BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> result = true
+           
+                               BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> result = true
+           
+                               BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> result = false
+                           }
+                       } else {
+                           when (biometricManager.canAuthenticate()) {
+                               BiometricManager.BIOMETRIC_SUCCESS -> result = true
+                               BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> result = false
+                               BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> result = false
+                               BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> result = false
+                           }
+                       }
+                       return result
+                   }
+           
+                   fun deviceHasPasswordPinLock(context: Context): Boolean {
+                       val keymgr =
+                           context.getSystemService(AppCompatActivity.KEYGUARD_SERVICE) as KeyguardManager
+                       if (keymgr.isKeyguardSecure) return true
+                       return false
+                   }
+               }
+           
+           
+           }
+
+// Pattern view lock view
+
+            implementation("io.github.itsxtt:pattern-lock:0.2.0")
+
+                id("org.jlleitschuh.gradle.ktlint") version "11.0.0"
+
+               <com.itsxtt.patternlock.PatternLockView
+                   android:id="@+id/pattern_view"
+                   android:layout_width="0dp"
+                   android:layout_height="wrap_content"
+                   android:alpha="0.5"
+                   app:layout_constraintBottom_toBottomOf="parent"
+                   app:layout_constraintEnd_toEndOf="parent"
+                   app:layout_constraintStart_toStartOf="parent"
+                   app:plv_regularDotColor="?attr/colorOnSurfaceVariant"
+                   app:plv_regularLineColor="?attr/colorOnPrimary" />
+                   
+
+// zoomin and zomm out zomable imageview gesterimageview
+
+           https://github.com/alexvasilkov/GestureViews
+
+
+            <com.alexvasilkov.gestures.views.GestureImageView
+                   android:id="@+id/imv"
+                   android:layout_width="0dp"
+                   android:layout_height="0dp"
+                   android:scaleType="centerCrop"
+                   android:transitionName="imageTransition"
+                   app:layout_constraintBottom_toBottomOf="parent"
+                   app:layout_constraintLeft_toLeftOf="parent"
+                   app:layout_constraintRight_toRightOf="parent"
+                   app:layout_constraintTop_toTopOf="parent"
+                   tools:src="@tools:sample/backgrounds/scenic" />
+                   
+// Tack Permission
+
+           https://github.com/guolindev/PermissionX
+
+
+// Dots Indicatore
+
+
+    implementation("com.tbuonomo:dotsindicator:5.0")
+
+            <com.tbuonomo.viewpagerdotsindicator.WormDotsIndicator
+                   android:id="@+id/worm_dots_indicator"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   app:dotsColor="?attr/colorPrimary"
+                   app:dotsCornerRadius="8dp"
+                   app:dotsSize="14dp"
+                   app:layout_constraintVertical_bias="0.95"
+                   app:dotsSpacing="4dp"
+                   app:dotsStrokeColor="?attr/colorPrimaryContainer"
+                   app:dotsStrokeWidth="2dp"
+                   app:layout_constraintBottom_toBottomOf="parent"
+                   app:layout_constraintEnd_toEndOf="parent"
+                   app:layout_constraintStart_toStartOf="parent"
+                   app:layout_constraintTop_toTopOf="parent" />
+                   
 // attractive Native ad layouts github online
            
            https://github.com/DevHamza090/Admob-AppLovin/tree/master/app/src/main/res/layout

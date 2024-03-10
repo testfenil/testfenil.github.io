@@ -1,5 +1,118 @@
 # testfenil.github.io
 
+// CryptoAES encrypt & decrypt string
+
+      class CryptoAES {
+          private val KEY_SIZE = 256
+          private val IV_SIZE = 128
+          private val HASH_CIPHER = "AES/CBC/PKCS7Padding"
+          private val AES = "AES"
+          private val KDF_DIGEST = "MD5"
+      
+          private val APPEND = "Salted__"
+      
+          fun encrypt(password: String, plainText: String): String {
+              val saltBytes = generateSalt(8)
+              val key = ByteArray(KEY_SIZE / 8)
+              val iv = ByteArray(IV_SIZE / 8)
+              EvpKDF(password.toByteArray(), KEY_SIZE, IV_SIZE, saltBytes, key, iv)
+              val keyS = SecretKeySpec(key, AES)
+              val cipher = Cipher.getInstance(HASH_CIPHER)
+              val ivSpec = IvParameterSpec(iv)
+              cipher.init(Cipher.ENCRYPT_MODE, keyS, ivSpec)
+              val cipherText = cipher.doFinal(plainText.toByteArray())
+              val sBytes = APPEND.toByteArray()
+              val b = ByteArray(sBytes.size + saltBytes.size + cipherText.size)
+              System.arraycopy(sBytes, 0, b, 0, sBytes.size)
+              System.arraycopy(saltBytes, 0, b, sBytes.size, saltBytes.size)
+              System.arraycopy(cipherText, 0, b, sBytes.size + saltBytes.size, cipherText.size)
+              val bEncode = android.util.Base64.encode(b, android.util.Base64.NO_WRAP)
+              return String(bEncode)
+          }
+      
+          fun decrypt(password: String, cipherText: String): String {
+              val ctBytes =
+                  android.util.Base64.decode(cipherText.toByteArray(), android.util.Base64.NO_WRAP)
+              val saltBytes = Arrays.copyOfRange(ctBytes, 8, 16)
+              val cipherTextBytes = Arrays.copyOfRange(ctBytes, 16, ctBytes.size)
+              val key = ByteArray(KEY_SIZE / 8)
+              val iv = ByteArray(IV_SIZE / 8)
+              EvpKDF(password.toByteArray(), KEY_SIZE, IV_SIZE, saltBytes, key, iv)
+              val cipher = Cipher.getInstance(HASH_CIPHER)
+              val keyS = SecretKeySpec(key, AES)
+              cipher.init(Cipher.DECRYPT_MODE, keyS, IvParameterSpec(iv))
+              val plainText = cipher.doFinal(cipherTextBytes)
+              return String(plainText)
+          }
+      
+          private fun EvpKDF(
+              password: ByteArray,
+              keySize: Int,
+              ivSize: Int,
+              salt: ByteArray,
+              resultKey: ByteArray,
+              resultIv: ByteArray
+          ): ByteArray {
+              return EvpKDF(password, keySize, ivSize, salt, 1, KDF_DIGEST, resultKey, resultIv)
+          }
+      
+          private fun EvpKDF(
+              password: ByteArray,
+              keySize: Int,
+              ivSize: Int,
+              salt: ByteArray,
+              iterations: Int,
+              hashAlgorithm: String,
+              resultKey: ByteArray,
+              resultIv: ByteArray
+          ): ByteArray {
+              val keySize = keySize / 32
+              val ivSize = ivSize / 32
+              val targetKeySize = keySize + ivSize
+              val derivedBytes = ByteArray(targetKeySize * 4)
+              var numberOfDerivedWords = 0
+              var block: ByteArray? = null
+              val hash = MessageDigest.getInstance(hashAlgorithm)
+              while (numberOfDerivedWords < targetKeySize) {
+                  if (block != null) {
+                      hash.update(block)
+                  }
+                  hash.update(password)
+                  block = hash.digest(salt)
+                  hash.reset()
+                  // Iterations
+                  for (i in 1 until iterations) {
+                      block = hash.digest(block!!)
+                      hash.reset()
+                  }
+                  System.arraycopy(
+                      block!!,
+                      0,
+                      derivedBytes,
+                      numberOfDerivedWords * 4,
+                      block.size.coerceAtMost((targetKeySize - numberOfDerivedWords) * 4)
+                  )
+                  numberOfDerivedWords += block.size / 4
+              }
+              System.arraycopy(derivedBytes, 0, resultKey, 0, keySize * 4)
+              System.arraycopy(derivedBytes, keySize * 4, resultIv, 0, ivSize * 4)
+              return derivedBytes // key + iv
+          }
+      
+          private fun generateSalt(length: Int): ByteArray {
+              return ByteArray(length).apply {
+                  SecureRandom().nextBytes(this)
+              }
+          }
+      
+          private val SECRET_KEY = "===censifcneifcjnem"
+          private val SECRET_KEY1 = "==cdseldxwscensifcneifcjnem"
+          private val INIT_VECTOR = "dmwsakldmasfcmf==="
+          private val INIT_VECTOR1 = "fcemdcfkmesdmwsa===kldmasfcmf"
+      
+      }
+
+
 // Custom Tab for privacy policy
       
             implementation 'com.android.support:customtabs:28.0.0'

@@ -3,6 +3,8 @@
 // Custom Tab for privacy policy
       
             implementation 'com.android.support:customtabs:28.0.0'
+                implementation 'androidx.browser:browser:1.5.0'
+
             
                  val privacyPolicyUrl =
                                   "https://imagecropnwallpaperchanger.blogspot.com/2023/07/privacy-policy.html"
@@ -15,6 +17,18 @@
                               )
                               val customTabsIntent = builder.build()
                               customTabsIntent.launchUrl(this@MainActivity, Uri.parse(privacyPolicyUrl))
+
+                                fun openCustomTab(link: String) {
+        val builder = CustomTabsIntent.Builder()
+        builder.setShareState(CustomTabsIntent.SHARE_STATE_ON)
+        val color = resources.getColor(com.example.artimind.R.color.bg_color)
+        val colorParams = CustomTabColorSchemeParams.Builder().setToolbarColor(color)
+            .setSecondaryToolbarColor(color).build()
+        builder.setDefaultColorSchemeParams(colorParams)
+        val customTabsIntent = builder.build()
+        customTabsIntent.launchUrl(this, Uri.parse(link))
+    }
+    
 
 // Custom native Ad
 

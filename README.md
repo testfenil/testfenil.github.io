@@ -1778,6 +1778,16 @@
         adb shell setprop debug.firebase.analytics.app       
         usage: setprop NAME VALUE
 
+
+// Facebook testad id
+
+       implementation 'com.facebook.android:audience-network-sdk:6.+'
+ 
+         native:  "CAROUSEL_IMG_SQUARE_APP_INSTALL#YOUR_PLACEMENT_ID",
+         intern:  "CAROUSEL_IMG_SQUARE_APP_INSTALL#YOUR_PLACEMENT_ID",
+         banner:  "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
+             
+
 // Test AD ID ADX
 
         Sample ad unit ID	

@@ -1,6 +1,464 @@
 # testfenil.github.io
 
 
+// PosterTextView
+                
+                
+                public class PosterText extends androidx.appcompat.widget.AppCompatTextView {
+                    private int strokeColor;
+                    private float strokeWidth = 5f;
+                    private int startColor;
+                    private int endColor;
+                
+                    private boolean invalidet = true;
+                
+                    private boolean isStroke = false;
+                    private boolean isDot = false;
+                    private boolean isDash = false;
+                
+                    private boolean isGradient = false;
+                    private boolean isPattern = false;
+                    private String patternPath;
+                
+                    public PosterText(@NonNull Context context) {
+                        super(context);
+                    }
+                
+                    public PosterText(@NonNull Context context, @Nullable AttributeSet attrs) {
+                        super(context, attrs);
+                    }
+                
+                    public PosterText(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+                        super(context, attrs, defStyleAttr);
+                    }
+                
+                    public void setDot() {
+                        isDot = true;
+                        isDash = false;
+                        invalidate();
+                    }
+                
+                    public void setDash() {
+                        isDash = true;
+                        isDot = false;
+                        invalidate();
+                    }
+                
+                    public boolean isDot() {
+                        return isDot;
+                    }
+                
+                    public boolean isDash() {
+                        return isDash;
+                    }
+                
+                    public void setLine() {
+                        isDash = false;
+                        isDot = false;
+                        invalidate();
+                    }
+                
+                    public void removeStroke() {
+                        isStroke = false;
+                        invalidate();
+                    }
+                
+                    @Override
+                    public void setTextColor(int color) {
+                        isPattern = false;
+                        isGradient = false;
+                        super.setTextColor(color);
+                    }
+                
+                    public void setPattern(String patternPath) {
+                        invalidet = true;
+                        this.patternPath = patternPath;
+                        isPattern = true;
+                        isGradient = false;
+                        invalidate();
+                    }
+                
+                    public void setStroke(int strokeColor) {
+                        this.strokeColor = strokeColor;
+                        isStroke = true;
+                        invalidate();
+                    }
+                
+                    public void setStroke(String strokeColor) {
+                        this.strokeColor = toColor(strokeColor);
+                        isStroke = true;
+                        invalidate();
+                    }
+                
+                    public void setStrokeWidth(float strokeWidth) {
+                        this.strokeWidth = strokeWidth;
+                        invalidate();
+                    }
+                
+                    public void setGradient(int startColor, int endColor) {
+                        this.startColor = startColor;
+                        this.endColor = endColor;
+                        isGradient = true;
+                        isPattern = false;
+                        invalidate();
+                    }
+                
+                    int gradient_orientation;
+                    int type;
+                    Integer gradientRadius;
+                
+                    public void setGradient(int startColor, int endColor, int type, int gradient_orientation) {
+                        this.type = type;
+                        this.gradient_orientation = gradient_orientation;
+                        this.startColor = startColor;
+                        this.endColor = endColor;
+                        isGradient = true;
+                        isPattern = false;
+                        invalidate();
+                    }
+                
+                    public void setGradient(int startColor, int endColor, Integer gradientRadius) {
+                        this.type = 1;
+                        this.gradientRadius = gradientRadius;
+                        this.startColor = startColor;
+                        this.endColor = endColor;
+                        isGradient = true;
+                        isPattern = false;
+                        invalidate();
+                    }
+                
+                    @SuppressLint("DrawAllocation")
+                    @Override
+                    public void onDraw(Canvas canvas) {
+                        Paint paint = this.getPaint();
+                        paint.setAntiAlias(true);
+                //        paint.setDither(false);
+                        if (getShadowColor() != 0) {
+                            paint.setShader(null);
+                            paint.setShadowLayer(getShadowRadius(), getShadowDx(), getShadowDy(), getShadowColor());
+                            super.onDraw(canvas);
+                            paint.clearShadowLayer();
+                        }
+                        if (isStroke && isGradient) {
+                            paint.setStyle(Paint.Style.STROKE);
+                            paint.setStrokeWidth(strokeWidth);
+                
+                            if (isDot)
+                                paint.setPathEffect(new DashPathEffect(new float[]{2f, 4f}, 0f));
+                            else if (isDash)
+                                paint.setPathEffect(new DashPathEffect(new float[]{10f, 6f}, 0f));
+                            else
+                                paint.setPathEffect(null);
+                
+                            paint.setShader(new LinearGradient(0f, 0f, getTextSize(), getTextSize(), strokeColor, strokeColor, Shader.TileMode.CLAMP));
+                            super.onDraw(canvas);
+                            /*paint.setStyle(Paint.Style.FILL);
+                            Shader linearShader = new LinearGradient(0f, 0f, 0, getHeight(), startColor, endColor, Shader.TileMode.CLAMP);
+                            paint.setShader(linearShader);*/
+                            paint.setStyle(Paint.Style.FILL);
+                
+                            Shader g;
+                
+                            switch (type) {
+                                case 0:
+                                    int x0, y0, x1, y1;
+                                    int w = getWidth();
+                                    int h = getHeight();
+                                    switch (gradient_orientation) {
+                                        case 1:
+                                            x0 = w / 2;
+                                            y0 = 0;
+                
+                                            x1 = w / 2;
+                                            y1 = h;
+                                            break;
+                
+                                        case 2:
+                                            x0 = w;
+                                            y0 = 0;
+                
+                                            x1 = 0;
+                                            y1 = h;
+                                            break;
+                
+                                        case 3:
+                                            x0 = w;
+                                            y0 = h / 2;
+                
+                                            x1 = 0;
+                                            y1 = h / 2;
+                                            break;
+                
+                                        case 4:
+                                            x0 = w;
+                                            y0 = h;
+                
+                                            x1 = 0;
+                                            y1 = 0;
+                                            break;
+                
+                                        case 5:
+                                            x0 = w / 2;
+                                            y0 = h;
+                
+                                            x1 = w / 2;
+                                            y1 = 0;
+                                            break;
+                
+                                        case 6:
+                                            x0 = 0;
+                                            y0 = h;
+                
+                                            x1 = w;
+                                            y1 = 0;
+                                            break;
+                
+                                        case 7:
+                                            x0 = 0;
+                                            y0 = h / 2;
+                
+                                            x1 = w;
+                                            y1 = h / 2;
+                                            break;
+                
+                                        case 8:
+                                            x0 = 0;
+                                            y0 = 0;
+                
+                                            x1 = w;
+                                            y1 = h;
+                                            break;
+                
+                                        default:
+                                            x0 = 0;
+                                            y0 = 0;
+                
+                                            x1 = 0;
+                                            y1 = h;
+                                    }
+                
+                                    g = new LinearGradient(x0, y0, x1, y1, startColor, endColor, Shader.TileMode.CLAMP);
+                                    break;
+                
+                                case 1:
+                                    log(gradientRadius);
+                                    float finalRd = (gradientRadius * getWidth()) / 500f;
+                                    g = new RadialGradient(getPivotX(), getPivotY(), gradientRadius == null ? getWidth() / 2f : finalRd == 0 ? 1 : finalRd, startColor, endColor, Shader.TileMode.CLAMP);
+                
+                                    break;
+                
+                                case 2:
+                                    g = new SweepGradient(getPivotX(), getPivotY(), startColor, endColor);
+                                    break;
+                
+                                default:
+                                    log("Default Of Poster Case");
+                                    g = new LinearGradient(0, 0, 0, getHeight(), startColor, endColor, Shader.TileMode.CLAMP);
+                            }
+                
+                            paint.setShader(g);
+                            super.onDraw(canvas);
+                
+                        } else if (isStroke && isPattern) {
+                            paint.setStyle(Paint.Style.STROKE);
+                            paint.setStrokeWidth(strokeWidth);
+                
+                            if (isDot)
+                                paint.setPathEffect(new DashPathEffect(new float[]{2f, 4f}, 0f));
+                            else if (isDash)
+                                paint.setPathEffect(new DashPathEffect(new float[]{10f, 6f}, 0f));
+                            else
+                                paint.setPathEffect(null);
+                
+                            paint.setShader(new LinearGradient(0f, 0f, getTextSize(), getTextSize(), strokeColor, strokeColor, Shader.TileMode.CLAMP));
+                            super.onDraw(canvas);
+                
+                            paint.setStyle(Paint.Style.FILL);
+                            Glide.with(this)
+                                    .asBitmap()
+                                    .load(BASE_ASSET + patternPath)
+                                    .into(new CustomTarget<Bitmap>() {
+                                        @Override
+                                        public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
+                                            Shader ptBitmap = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+                                            paint.setShader(ptBitmap);
+                
+                                            if (invalidet) {
+                                                invalidate();
+                                                invalidet = false;
+                                            }
+                                        }
+                
+                                        @Override
+                                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                                        }
+                                    });
+                            super.onDraw(canvas);
+                
+                        } else if (isStroke) {
+                            int textColor = getTextColors().getDefaultColor();
+                            paint.setStyle(Paint.Style.STROKE);
+                            paint.setStrokeWidth(strokeWidth);
+                
+                            if (isDot)
+                                paint.setPathEffect(new DashPathEffect(new float[]{2f, 4f}, 0f));
+                            else if (isDash)
+                                paint.setPathEffect(new DashPathEffect(new float[]{10f, 6f}, 0f));
+                            else
+                                paint.setPathEffect(null);
+                
+                            paint.setShader(new LinearGradient(0f, 0f, getTextSize(), getTextSize(), strokeColor, strokeColor, Shader.TileMode.CLAMP));
+                            super.onDraw(canvas);
+                            paint.setStyle(Paint.Style.FILL);
+                            Shader linearShader = new LinearGradient(0f, 0f, 0f, 0, textColor, textColor, Shader.TileMode.CLAMP);
+                            paint.setShader(linearShader);
+                            super.onDraw(canvas);
+                
+                        } else if (isGradient) {
+                //            paint.setStyle(Paint.Style.FILL);
+                //            paint.setShader(new LinearGradient(0f, 0f, 0, getHeight(), startColor, endColor, Shader.TileMode.CLAMP));
+                //            super.onDraw(canvas);
+                
+                            paint.setStyle(Paint.Style.FILL);
+                
+                            Shader g;
+                
+                            switch (type) {
+                                case 0:
+                                    int x0, y0, x1, y1;
+                                    int w = getWidth();
+                                    int h = getHeight();
+                                    switch (gradient_orientation) {
+                                        case 1:
+                                            x0 = w / 2;
+                                            y0 = 0;
+                
+                                            x1 = w / 2;
+                                            y1 = h;
+                                            break;
+                
+                                        case 2:
+                                            x0 = w;
+                                            y0 = 0;
+                
+                                            x1 = 0;
+                                            y1 = h;
+                                            break;
+                
+                                        case 3:
+                                            x0 = w;
+                                            y0 = h / 2;
+                
+                                            x1 = 0;
+                                            y1 = h / 2;
+                                            break;
+                
+                                        case 4:
+                                            x0 = w;
+                                            y0 = h;
+                
+                                            x1 = 0;
+                                            y1 = 0;
+                                            break;
+                
+                                        case 5:
+                                            x0 = w / 2;
+                                            y0 = h;
+                
+                                            x1 = w / 2;
+                                            y1 = 0;
+                                            break;
+                
+                                        case 6:
+                                            x0 = 0;
+                                            y0 = h;
+                
+                                            x1 = w;
+                                            y1 = 0;
+                                            break;
+                
+                                        case 7:
+                                            x0 = 0;
+                                            y0 = h / 2;
+                
+                                            x1 = w;
+                                            y1 = h / 2;
+                                            break;
+                
+                                        case 8:
+                                            x0 = 0;
+                                            y0 = 0;
+                
+                                            x1 = w;
+                                            y1 = h;
+                                            break;
+                
+                                        default:
+                                            x0 = 0;
+                                            y0 = 0;
+                
+                                            x1 = 0;
+                                            y1 = h;
+                                    }
+                
+                                    g = new LinearGradient(x0, y0, x1, y1, startColor, endColor, Shader.TileMode.CLAMP);
+                                    break;
+                
+                                case 1:
+                                    log(gradientRadius);
+                
+                                    float finalRd = 0;
+                                    if (gradientRadius != null)
+                                        finalRd = (gradientRadius * getWidth()) / 500f;
+                
+                                    g = new RadialGradient(getPivotX(), getPivotY(), gradientRadius == null ? getWidth() / 2f : finalRd == 0 ? 1 : finalRd, startColor, endColor, Shader.TileMode.CLAMP);
+                
+                                    break;
+                
+                                case 2:
+                                    g = new SweepGradient(getPivotX(), getPivotY(), startColor, endColor);
+                                    break;
+                
+                                default:
+                                    log("Default Of Poster Case");
+                                    g = new LinearGradient(0, 0, 0, getHeight(), startColor, endColor, Shader.TileMode.CLAMP);
+                            }
+                
+                            paint.setShader(g);
+                            super.onDraw(canvas);
+                
+                        } else if (isPattern) {
+                            paint.setStyle(Paint.Style.FILL);
+                            Glide.with(this)
+                                    .asBitmap()
+                                    .load(BASE_ASSET + patternPath)
+                                    .into(new CustomTarget<Bitmap>() {
+                                        @Override
+                                        public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
+                                            Shader ptBitmap = new BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+                                            paint.setShader(ptBitmap);
+                
+                                            if (invalidet) {
+                                                invalidate();
+                                                invalidet = false;
+                                            }
+                                        }
+                
+                                        @Override
+                                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                                        }
+                                    });
+                            super.onDraw(canvas);
+                
+                        } else {
+                            paint.setStyle(Paint.Style.FILL);
+                            paint.setShader(new LinearGradient(0f, 0f, 0f, 0, getCurrentTextColor(), getCurrentTextColor(), Shader.TileMode.CLAMP));
+                            super.onDraw(canvas);
+                        }
+                    }
+                }
+
+
 // Notification morning start alarm start services
 
         <receiver

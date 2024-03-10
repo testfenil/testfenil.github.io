@@ -1,5 +1,109 @@
 # testfenil.github.io
 
+
+// Box red line view
+
+      attrs.xml
+      
+      <resources>
+          <declare-styleable name="DividerView">
+              <attr name="color" format="color" />
+              <attr name="dashLength" format="dimension" />
+              <attr name="dashGap" format="dimension" />
+              <attr name="dashThickness" format="dimension" />
+              <attr name="orientation" format="enum">
+                  <enum name="horizontal" value="0" />
+                  <enum name="vertical" value="1" />
+              </attr>
+          </declare-styleable>
+      
+          <declare-styleable name="StrokedTextAttrs">
+              <attr name="textStrokeColor" format="color"/>
+              <attr name="textStrokeWidth" format="float"/>
+          </declare-styleable>
+      </resources>
+
+
+      public class BoxView extends View {
+          static public int ORIENTATION_HORIZONTAL = 0;
+          static public int ORIENTATION_VERTICAL = 1;
+          private final Paint paint;
+          private final Paint paintCenter;
+      
+      
+          @SuppressLint("ResourceAsColor")
+          public BoxView(Context context, AttributeSet attrs) {
+              super(context, attrs);
+              int dashGap, dashLength, dashThickness;
+              int color;
+              int centerDashGap, centerDashLength, centerDashThickness;
+              int centerColor;
+      
+              TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.DividerView, 0, 0);
+              TypedArray centerA = context.getTheme().obtainStyledAttributes(attrs, R.styleable.DividerView, 0, 0);
+      
+              try {
+                  dashGap = a.getDimensionPixelSize(R.styleable.DividerView_dashGap, 10);
+                  dashLength = a.getDimensionPixelSize(R.styleable.DividerView_dashLength, 12);
+                  dashThickness = a.getDimensionPixelSize(R.styleable.DividerView_dashThickness, 1);
+                  color = a.getColor(R.styleable.DividerView_color, getResources().getColor(R.color.custom_red, null));
+      
+                  centerDashGap = centerA.getDimensionPixelSize(R.styleable.DividerView_dashGap, 0);
+                  centerDashLength = centerA.getDimensionPixelSize(R.styleable.DividerView_dashLength, 0);
+                  centerDashThickness = centerA.getDimensionPixelSize(R.styleable.DividerView_dashThickness, 2);
+                  centerColor = centerA.getColor(R.styleable.DividerView_color, Color.RED);
+              } finally {
+                  a.recycle();
+                  centerA.recycle();
+              }
+      
+              paint = new Paint();
+              paint.setAntiAlias(true);
+              paint.setColor(color);
+              paint.setStyle(Paint.Style.STROKE);
+              paint.setStrokeWidth(dashThickness);
+              paint.setPathEffect(new DashPathEffect(new float[]{dashLength, dashGap,}, 0));
+      
+              paintCenter = new Paint();
+              paintCenter.setAntiAlias(true);
+              paintCenter.setColor(centerColor);
+              paintCenter.setStyle(Paint.Style.STROKE);
+              paintCenter.setStrokeWidth(centerDashThickness);
+              paintCenter.setPathEffect(new DashPathEffect(new float[]{centerDashLength, centerDashGap,}, 0));
+          }
+      
+          public BoxView(Context context) {
+              this(context, null);
+          }
+      
+          @Override
+          protected void onDraw(Canvas canvas) {
+              //center horizontal line
+              float centerH = getHeight() / 2f;
+              canvas.drawLine(0, centerH, getWidth(), centerH, paintCenter);
+      
+              //center Vertical line
+              float centerV = getWidth() / 2f;
+              canvas.drawLine(centerV, 0, centerV, getHeight(), paintCenter);
+      
+              // horizontal lines
+              float thPartH = getHeight() / 12f;
+              for (int i = 0; i <= 12; i++)
+                  canvas.drawLine(0, thPartH * i, getWidth(), thPartH * i, paint);
+      
+              // Vertical lines
+              float thPartV = getWidth() / 10f;
+              for (int i = 0; i <= 10; i++)
+                  canvas.drawLine(thPartV * i, 0, thPartV * i, getHeight(), paint);
+          }
+      }
+            
+       boxView = new BoxView(this);
+              boxView.setBackgroundColor(Color.TRANSPARENT);
+              boxView.setVisibility(View.GONE);
+              bgFrameLayout.addView(boxView);
+              
+
 // CryptoAES encrypt & decrypt string
 
       class CryptoAES {

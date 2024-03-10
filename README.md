@@ -1,6 +1,102 @@
 # testfenil.github.io
 
 
+// Notification morning start alarm start services
+
+        <receiver
+                  android:name=".MyReceiver"
+                  android:exported="true">
+                  <intent-filter>
+                      <action android:name="android.intent.action.BOOT_COMPLETED" />
+                      <action android:name="android.intent.action.INPUT_METHOD_CHANGED" />
+                  </intent-filter>
+              </receiver>
+      
+                    
+      public class MyReceiver extends BroadcastReceiver {
+      
+          @Override
+          public void onReceive(Context context, Intent intent) {
+              try {
+                  switch (intent.getAction()) {
+                      case Intent.ACTION_BOOT_COMPLETED:
+                      case Intent.ACTION_INPUT_METHOD_CHANGED:
+                          if (MyManager.getInt(DRAFT_SIZE) > 0) {
+                              createNotificationChannel(context);
+                              Intent notificationIntent = new Intent(context, SplashActivity.class);
+                              PendingIntent pendingIntent = PendingIntent.getActivity(context, 23432420, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+                              Notification notification = new NotificationCompat.Builder(context, "CHANNEL_ID")
+                                      .setContentTitle("It has been a few days since you have used the " + context.getString(R.string.app_name) + " app.")
+                                      .setSmallIcon(R.mipmap.ic_launcher)
+                                      .setContentIntent(pendingIntent)
+                                      .setAutoCancel(true)
+                                      .build();
+      
+                              NotificationManager mNotificationManager =
+                                      (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                              mNotificationManager.notify(0, notification);
+      
+                              Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+                              vibrator.vibrate(500);
+                              log("notified");
+                          }
+                  }
+              } catch (Exception e) {
+                  print(e);
+              }
+          }
+      
+          private void createNotificationChannel(Context context) {
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                  NotificationChannel serviceChannel = new NotificationChannel(
+                          "CHANNEL_ID",
+                          context.getString(R.string.app_name) + " Notification",
+                          NotificationManager.IMPORTANCE_DEFAULT
+                  );
+                  NotificationManager manager = context.getSystemService(NotificationManager.class);
+                  manager.createNotificationChannel(serviceChannel);
+              }
+          }
+      }
+
+
+                    
+      fun setAlarm(activity: Context, time: Long) {
+          val pendingIntent = PendingIntent.getBroadcast(activity.applicationContext, 23432420, Intent(activity, MyReceiver::class.java), PendingIntent.FLAG_IMMUTABLE)
+          val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+          alarmManager[AlarmManager.RTC_WAKEUP, time] = pendingIntent
+      }
+      
+      fun killAlarm(activity: Context, onChange: () -> Unit) {
+          val intent = Intent(activity, MyReceiver::class.java)
+          val pendingIntent = PendingIntent.getBroadcast(activity, 23432420, intent, PendingIntent.FLAG_IMMUTABLE)
+          val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+          alarmManager[AlarmManager.RTC_WAKEUP, 0] = pendingIntent
+          alarmManager.cancel(pendingIntent)
+          onChange()
+      }
+
+
+        killAlarm(this) {
+            val after24hours = System.currentTimeMillis() + 86400000L
+            setAlarm(this, after24hours)
+        }
+      
+      
+              fun View.toBmp(): Bitmap {
+          System.gc()
+          val b = Bitmap.createBitmap(if (width == 0) 1 else width, if (height == 0) 1 else height, Bitmap.Config.ARGB_8888)
+          layout(left, top, right, bottom)
+          draw(Canvas(b))
+          return b
+      }
+      
+      fun ImageView.ivToBmp(): Bitmap {
+          System.gc()
+          return drawable.toBitmap()
+      }
+
+
 // Box red line view
 
       attrs.xml

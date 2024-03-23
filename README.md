@@ -1,6 +1,47 @@
 # testfenil.github.io
 
 
+// Gradiant strok line custom drawable
+
+       ----
+       <ripple xmlns:android="http://schemas.android.com/apk/res/android"
+           android:color="?colorControlHighlight">
+           <item android:id="@android:id/mask">
+               <shape android:shape="rectangle">
+                   <corners android:radius="100dp"/>
+                   <solid android:color="@color/black"/>
+               </shape>
+               <color android:color="@color/white"/>
+           </item>
+       </ripple>
+
+       ----
+       <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+           <item>
+               <shape android:shape="rectangle">
+                   <gradient
+                       android:angle="360"
+                       android:endColor="#D258D6"
+                       android:gradientRadius="360"
+                       android:startColor="#FBAF5F"
+                       android:type="sweep" />
+       
+                   <corners android:radius="4dp" />
+               </shape>
+           </item>
+           <item
+               android:bottom="1.5dp"
+               android:left="1.5dp"
+               android:right="1.5dp"
+               android:top="1.5dp">
+               <shape android:shape="rectangle">
+                   <solid android:color="@color/black" />
+               </shape>
+           </item>
+       
+       </layer-list>
+
+
 // Ripple Relative layout ripple background
        
        class RippleBackground : RelativeLayout {
@@ -9819,6 +9860,63 @@
 
 
 // Important Lib
+
+       
+          //tab-layout
+           implementation("com.github.crimson0829:AdvancedTabLayout:1.6")
+
+                         <?xml version="1.0" encoding="utf-8"?>
+              <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  tools:context=".ui.recovered_media.activity.RecoveredFileActivity">
+              
+                  <androidx.appcompat.widget.Toolbar
+                      android:id="@+id/toolbar"
+                      android:layout_width="match_parent"
+                      android:layout_height="?actionBarSize"
+                      app:layout_constraintEnd_toEndOf="parent"
+                      app:layout_constraintStart_toStartOf="parent"
+                      app:layout_constraintTop_toTopOf="parent"
+                      app:navigationIcon="@drawable/ic_back"
+                      app:title="Recovered Media"
+                      app:titleTextAppearance="@style/ToolbarTitleStyle" />
+              
+                  <androidx.viewpager2.widget.ViewPager2
+                      android:id="@+id/pager"
+                      android:layout_width="0dp"
+                      android:layout_height="0dp"
+                      app:layout_constraintBottom_toTopOf="@+id/tabLayout"
+                      app:layout_constraintEnd_toEndOf="parent"
+                      app:layout_constraintHorizontal_bias="1.0"
+                      app:layout_constraintStart_toStartOf="parent"
+                      app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+              
+                  <com.crimson.library.tab.AdvancedTabLayout
+                      android:id="@+id/tabLayout"
+                      android:layout_width="match_parent"
+                      android:layout_height="@dimen/_42sdp"
+                      app:layout_constraintBottom_toBottomOf="parent"
+                      app:layout_constraintEnd_toEndOf="parent"
+                      app:layout_constraintStart_toStartOf="parent"
+                      app:tl_indicator_color="@color/color_active"
+                      app:tl_indicator_corner_radius="100dp"
+                      app:tl_indicator_height="5dp"
+                      app:tl_indicator_width="35dp"
+                      app:tl_smoothScroll_enable="true"
+                      app:tl_textBold="NONE"
+                      app:tl_textSelectColor="@color/white"
+                      app:tl_textSelectSize="@dimen/_16ssp"
+                      app:tl_textUnselectColor="@color/color_gray_800"
+                      app:tl_textsize="@dimen/_13ssp"
+                      app:tl_underline_color="@android:color/transparent"
+                      app:tl_underline_height="5dp" />
+              
+              
+              
+              </androidx.constraintlayout.widget.ConstraintLayout>
 
           //ticker timer animation textview
            implementation("com.robinhood.ticker:ticker:2.0.4")

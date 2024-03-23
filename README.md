@@ -1,6 +1,48 @@
 # testfenil.github.io
 
 
+// Check Permission
+
+       
+       internal fun Context.getCompactColor(color: Int): Int = ContextCompat.getColor(this, color)
+       
+       internal fun View.getCompactColor(color: Int): Int = ContextCompat.getColor(this.context, color)
+       
+       internal fun Context.getCompactDrawable(drawable: Int): Drawable? =
+           ContextCompat.getDrawable(this, drawable)
+       
+       internal fun View.getCompactDrawable(drawable: Int): Drawable? =
+           ContextCompat.getDrawable(context, drawable)
+       
+       internal fun AppCompatActivity.changeStatusBarColor(color: Int) {
+           window.statusBarColor = getCompactColor(color)
+       }
+       
+       internal fun File.isImageOrGifFile(): Boolean = kotlin.run {
+           name.endsWith("png") || name.endsWith("jpg") || name.endsWith("jpeg") || name.endsWith(".gif")
+       }
+       
+       internal fun File.isVideoFile(): Boolean =
+           kotlin.run { name.endsWith("mp4") || name.endsWith("mkv") || name.endsWith("mov") }
+    
+
+       internal fun Context.hasPermissions(permissionList: MutableList<String>): Boolean {
+           var hasAllPermissions = true
+           for (permission in permissionList) {
+               if (checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+                   hasAllPermissions = false
+               }
+           }
+           return hasAllPermissions
+       }
+
+       if (hasPermissions(permissionList)) {
+                navigateToOtherScreen()
+                return
+            }
+
+
+
 // Hide Navigation and status bar color 
 
        fun hideBottomNavigationBar() {
@@ -1332,6 +1374,19 @@
                    app:navigationIconTint="?attr/colorOnBackground"
                    app:title="@string/private_files" />
 
+
+                    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="Recovered Media"
+        app:titleTextAppearance="@style/ToolbarTitleStyle" />
+
+        binding.toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
 
 
 // RecyclerView BaseAdapter
@@ -9631,6 +9686,30 @@
 
 // Important Lib
 
+          //ticker timer animation textview
+           implementation("com.robinhood.ticker:ticker:2.0.4")
+
+
+              <com.robinhood.ticker.TickerView
+        android:id="@+id/tvTapOnStartScan"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_35sdp"
+        android:layout_marginTop="@dimen/_15sdp"
+        android:fontFamily="@font/nunito_reguler"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:text="@string/tap_to_start_scanning"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_15ssp"
+        app:layout_constraintEnd_toEndOf="@+id/animationView"
+        app:layout_constraintStart_toStartOf="@+id/animationView"
+        app:layout_constraintTop_toBottomOf="@+id/animationView"
+        app:ticker_animationDuration="500" />
+
+
+                binding.tvTapOnStartScan.setCharacterLists(TickerUtils.provideNumberList())
+
+    
     //mvvm,coroutine,lifecycle
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")

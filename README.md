@@ -1,6 +1,21 @@
 # testfenil.github.io
 
 
+// Hide Navigation and status bar color 
+
+       fun hideBottomNavigationBar() {
+              window.statusBarColor = ContextCompat.getColor(this, R.color.status_bar_color)
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                  // For devices running Android 11 (API level 30) and above
+                  window.setDecorFitsSystemWindows(false)
+                  window.insetsController?.hide(WindowInsets.Type.navigationBars())
+              } else {
+                  // For devices running below Android 11
+                  window.decorView.systemUiVisibility =
+                      (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+              }
+          }
+
 // Finger Draw view
 
       

@@ -1,5 +1,22 @@
 # testfenil.github.io
 
+// Poster Maker Logic
+
+     Set Child
+
+        frameLayout.setX(pxToDpW(child.getXPos()) - 30);
+        frameLayout.setY(pxToDpH(child.getYPos()) - 30);
+        
+
+     private int pxToDpW(float px) {
+          return (int) Math.round((px * posterWidthInSc) / layout.getLayoutWidth());
+      }
+  
+      private int pxToDpH(float px) {
+          return (int) Math.round((px * posterHeightInSc) / layout.getLayoutHeight());
+      }
+    
+
 // Load Reward Ad
 
                interface RewardAdsCallback {

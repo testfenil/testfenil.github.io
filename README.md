@@ -1,5 +1,124 @@
 # testfenil.github.io
 
+// Load Facebook Ad
+
+        android:hardwareAccelerated="true"
+
+
+    implementation 'com.facebook.android:audience-network-sdk:6.+'
+
+      <activity
+                 android:name="com.facebook.ads.AudienceNetworkActivity"
+                 android:hardwareAccelerated="true" />
+     
+             <meta-data
+                 android:name="com.google.android.gms.ads.AD_MANAGER_APP"
+                 android:value="true" />
+             <meta-data
+                 android:name="com.google.android.gms.ads.APPLICATION_ID"
+                 android:value="ca-app-pub-3940256099942544~3347511713" />
+                 
+
+          fun loadBigFbNativeAds(activity: Activity, viewGroup: ViewGroup) {
+     
+         val nativeFbAds = NativeAd(activity, Ads_ApplicationClass.getAdsdata(ADSKEY).facebook_native)
+     
+         val nativeAdListener = object : NativeAdListener {
+             override fun onError(p0: Ad?, p1: com.facebook.ads.AdError?) {
+                 ("onError").log()
+             }
+     
+             override fun onAdLoaded(p0: Ad?) {
+                 ("onAdLoaded").log()
+                 val viewAttributes = NativeAdViewAttributes().setBackgroundColor(Color.WHITE)
+                     .setTitleTextColor(Color.BLACK).setDescriptionTextColor(Color.BLACK)
+                     .setButtonColor(Color.parseColor("#B52C01")).setButtonTextColor(Color.WHITE)
+                 val adViewBigFB = com.facebook.ads.NativeAdView.render(
+                     activity, nativeFbAds, viewAttributes
+                 )
+                 viewGroup.addView(
+                     adViewBigFB, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 525)
+                 )
+             }
+     
+             override fun onAdClicked(p0: Ad?) {
+                 ("onAdClicked").log()
+             }
+     
+             override fun onLoggingImpression(p0: Ad?) {
+                 ("onLoggingImpression").log()
+             }
+     
+             override fun onMediaDownloaded(p0: Ad?) {
+                 ("onMediaDownloaded").log()
+             }
+         }
+         nativeFbAds.loadAd(
+             nativeFbAds.buildLoadAdConfig().withAdListener(nativeAdListener).build()
+         )
+     }
+     
+
+     fun loadSmallNativeAds(activity: Activity, viewGroup: ViewGroup, adUnified: Int) {
+         viewGroup.removeAllViews()
+         if (Ads_ApplicationClass.getAdsdata(ADSKEY).ads_platform == "Addmob") loadNativeAdmobSmallAds(
+             activity, viewGroup, ad_id = adUnified
+         )
+         else if (Ads_ApplicationClass.getAdsdata(ADSKEY).ads_platform != "NOADS") loadNativeSmallFB(
+             activity, viewGroup
+         )
+     }
+     
+
+     fun loadFBanner(activity: Activity, viewGroup: ViewGroup) {
+     //    ("FB Banner").log()
+         val adView = com.facebook.ads.AdView(
+             activity, Ads_ApplicationClass.getAdsdata(ADSKEY).facebook_banner.trim(), BANNER_HEIGHT_50
+         )
+         viewGroup.addView(adView);
+         adView.loadAd();
+     }
+     fun loadNativeSmallFB(activity: Activity, viewGroup: ViewGroup) {
+     
+         val mNativeBannerAd =
+             NativeBannerAd(activity, Ads_ApplicationClass.getAdsdata(ADSKEY).facebook_native)
+     
+         val nativeAdListener = object : NativeAdListener {
+             override fun onError(p0: Ad?, p1: com.facebook.ads.AdError?) {
+                 ("onError").log()
+             }
+     
+             override fun onAdLoaded(p0: Ad?) {
+                 ("onAdLoaded").log()
+                 val viewAttributes = NativeAdViewAttributes().setBackgroundColor(Color.WHITE)
+                     .setTitleTextColor(Color.BLACK).setDescriptionTextColor(Color.BLACK)
+                     .setButtonColor(Color.parseColor("#B52C01")).setButtonTextColor(Color.WHITE);
+     
+                 val adViewFB = NativeBannerAdView.render(
+                     activity, mNativeBannerAd, NativeBannerAdView.Type.HEIGHT_100, viewAttributes
+                 )
+                 viewGroup.addView(adViewFB)
+             }
+     
+             override fun onAdClicked(p0: Ad?) {
+                 ("onAdClicked").log()
+             }
+     
+             override fun onLoggingImpression(p0: Ad?) {
+                 ("onLoggingImpression").log()
+             }
+     
+             override fun onMediaDownloaded(p0: Ad?) {
+                 ("onMediaDownloaded").log()
+             }
+         }
+         mNativeBannerAd.loadAd(
+             mNativeBannerAd.buildLoadAdConfig().withAdListener(nativeAdListener).build()
+         )
+     }
+
+
+
 // Poster Maker Logic
 
      Set Child

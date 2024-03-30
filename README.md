@@ -1,6 +1,12 @@
 # testfenil.github.io
 
+
 // Load Facebook Ad
+
+         facebook mediation lib
+
+             implementation("com.google.ads.mediation:facebook:6.16.0.0")
+
 
         android:hardwareAccelerated="true"
 

@@ -1,6 +1,53 @@
 # testfenil.github.io
 
 
+// Custom Horizontal progressbar with drawable
+
+         <ProgressBar
+                 android:id="@+id/progress"
+                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                 android:layout_width="match_parent"
+                 android:layout_height="@dimen/_8sdp"
+                 android:layout_marginBottom="@dimen/_15sdp"
+                 android:background="@color/white"
+                 android:layout_marginStart="@dimen/_5sdp"
+                 android:layout_marginEnd="@dimen/_5sdp"
+                 android:max="100"
+                 android:progress="10"
+                 android:progressDrawable="@drawable/progress_bg"
+                 app:layout_constraintBottom_toBottomOf="parent"
+                 app:layout_constraintEnd_toEndOf="parent"
+                 app:layout_constraintStart_toStartOf="parent" />
+
+         
+         <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+             <item android:id="@android:id/background">
+                 <color android:color="@android:color/transparent" />
+                 <corners
+                     android:radius="@dimen/_6sdp"/>
+             </item>
+             <item android:id="@android:id/progress">
+                 <clip
+                     android:clipOrientation="horizontal"
+                     android:gravity="left">
+                     <layer-list>
+                         <item>
+                             <color android:color="#640000" />
+                             <corners
+                                 android:radius="@dimen/_6sdp"/>
+                         </item>
+                         <item android:right="4dp">
+                             <shape>
+                                 <corners
+                                     android:radius="@dimen/_6sdp"/>
+                                 <solid android:color="#B05DDD" />
+                             </shape>
+                         </item>
+                     </layer-list>
+                 </clip>
+             </item>
+         </layer-list>
+
 
 // call test api callapi demo
 

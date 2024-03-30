@@ -1,6 +1,86 @@
 # testfenil.github.io
 
 
+
+// call test api callapi demo
+
+         
+           //retrofit2
+             implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+             implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+         
+             //interceptor
+             implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
+         
+             //gson
+             implementation 'com.google.code.gson:gson:2.10.1'
+         
+
+         @Keep
+         interface ApiService {
+             @Multipart
+             @POST("avatar/img2img")
+             fun makeApiCall(
+                 @Part file: MultipartBody.Part,
+                 @Part("prompt") prompt: RequestBody,
+                 @Part("strength") strength: Double = 0.35,
+                 @Part("guidance_scale") guidance_scale: Double = 5.5,
+                 @Part("num_inference_steps") num_inference_steps: Int = 100,
+                 @Part("negative_prompt") negative_prompt: String = "ugly, tiling, poorly drawn hands, poorly drawn feet, poorly drawn face, out of frame, extra limbs",
+             ): Call<ResModel>
+         }
+         
+         @Keep
+         interface onResponce {
+             fun <T> onSuccess(res: T)
+             fun onError(error: String)
+         }
+         
+         @Keep
+         class ApiCaller {
+             fun makeApiCall(reqBodyFile: MultipartBody.Part, promypart: RequestBody, onNext: onResponce) {
+                 val interceptor by lazy { HttpLoggingInterceptor() } //todo remove this line in production
+                 interceptor.setLevel(HttpLoggingInterceptor.Level.BODY) //todo remove this line in production
+         
+                 val okClient by lazy {
+                     OkHttpClient.Builder().addInterceptor(Interceptor { chain: Interceptor.Chain ->
+                         val originalRequest: Request = chain.request()
+                         val requestBuilder: Request.Builder =
+                             originalRequest.newBuilder().addHeader("Cache-Control", "no-cache")
+                                 .method(originalRequest.method, originalRequest.body)
+                         val request: Request = requestBuilder.build()
+                         chain.proceed(request)
+                     }).connectTimeout(30, TimeUnit.SECONDS).addInterceptor(interceptor)
+                         .readTimeout(30, TimeUnit.SECONDS).build()
+                 }
+         
+                 val retrofit by lazy {
+                     Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create())
+                         .client(okClient).build()
+                 }
+                 val myApi by lazy {
+                     retrofit.create(ApiService::class.java)
+                 }
+                 myApi.makeApiCall(prompt = promypart, file = reqBodyFile)
+                     .enqueue(object : Callback<ResModel> {
+                         override fun onResponse(
+                             call: Call<ResModel>, response: retrofit2.Response<ResModel>
+                         ) {
+                             ("Rs Code: ${response.code()}} | ${response.message()} ").log()
+                             if (response.code() == 200) onNext.onSuccess(response.body())
+                             else {
+                                 onNext.onError("Something Went Wrong Try Again!")
+                             }
+                         }
+         
+                         override fun onFailure(call: Call<ResModel>, t: Throwable) {
+                             ("OnError: ${t.message}").log()
+                             onNext.onError(t.message!!)
+                         }
+                     })
+             }
+         }
+
 // Load Facebook Ad
 
          facebook mediation lib

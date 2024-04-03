@@ -1,6 +1,56 @@
 # testfenil.github.io
 
 
+// Shimmer for adview adaptive banner shimmer layout
+
+    <LinearLayout
+        android:id="@+id/bannerid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_50sdp"
+            app:shimmer_auto_start="true"
+            app:shimmer_duration="700"
+            app:shimmer_fixed_width="@dimen/_200sdp"
+            app:shimmer_highlight_color="@color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/shimmer_layout">
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="Load Ads"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_22sdp" />
+
+        </com.facebook.shimmer.ShimmerFrameLayout>
+    </LinearLayout>
+
+
+             <shape xmlns:android="http://schemas.android.com/apk/res/android"
+             android:shape="rectangle">
+         
+             <solid android:color="#61FFFFFF">
+         
+             </solid>
+         
+         </shape>
+
+
+
 // Custom Horizontal progressbar with drawable
 
          <ProgressBar
@@ -47,6 +97,7 @@
                  </clip>
              </item>
          </layer-list>
+
 
 
 // call test api callapi demo

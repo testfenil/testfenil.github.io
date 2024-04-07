@@ -1,6 +1,11 @@
 # testfenil.github.io
 
 
+// onbackpress pr intern ad delay issues 
+
+        android:enableOnBackInvokedCallback="true"
+
+
 // Shimmer for adview adaptive banner shimmer layout
 
     <LinearLayout

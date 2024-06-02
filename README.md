@@ -1,5 +1,656 @@
 # testfenil.github.io
 
+// InApp Update
+    
+     Lib
+            configurations {
+           all {
+               resolutionStrategy {
+                   // Exclude specific modules causing conflicts
+                   exclude group: 'com.google.android.play', module: 'core'
+               }
+           }
+       }
+    
+    implementation 'com.google.android.play:app-update:2.1.0'
+    
+       class InAppUpdate(activity: Activity) : InstallStateUpdatedListener {
+       
+           private var appUpdateManager: AppUpdateManager
+           private val MY_REQUEST_CODE = 500
+           private var parentActivity: Activity = activity
+       
+           private var currentType = AppUpdateType.FLEXIBLE
+       
+           init {
+               appUpdateManager = AppUpdateManagerFactory.create(parentActivity)
+               appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+       //            ("Isupdatecheck $info").log()
+                   // Check if update is available
+                   if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                       // UPDATE IS AVAILABLE
+                       if (info.availableVersionCode() > BuildConfig.VERSION_CODE) {
+                           startUpdate(info, AppUpdateType.FLEXIBLE)
+                       }
+       
+       //                if (info.updatePriority() == 5) { // Priority: 5 (Immediate update flow)
+       //                    if (info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+       //                        startUpdate(info, AppUpdateType.IMMEDIATE)
+       //                    }
+       //                } else if (info.updatePriority() == 4) { // Priority: 4
+       //                    val clientVersionStalenessDays = info.clientVersionStalenessDays()
+       //                    if (clientVersionStalenessDays != null && clientVersionStalenessDays >= 5 && info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+       //                        // Trigger IMMEDIATE flow
+       //                        startUpdate(info, AppUpdateType.IMMEDIATE)
+       //                    } else if (clientVersionStalenessDays != null && clientVersionStalenessDays >= 3 && info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+       //                        // Trigger FLEXIBLE flow
+       //                        startUpdate(info, AppUpdateType.FLEXIBLE)
+       //                    }
+       //                } else if (info.updatePriority() == 3) { // Priority: 3
+       //                    val clientVersionStalenessDays = info.clientVersionStalenessDays()
+       //                    if (clientVersionStalenessDays != null && clientVersionStalenessDays >= 30 && info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+       //                        // Trigger IMMEDIATE flow
+       //                        startUpdate(info, AppUpdateType.IMMEDIATE)
+       //                    } else if (clientVersionStalenessDays != null && clientVersionStalenessDays >= 15 && info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+       //                        // Trigger FLEXIBLE flow
+       //                        startUpdate(info, AppUpdateType.FLEXIBLE)
+       //                    }
+       //                } else if (info.updatePriority() == 2) { // Priority: 2
+       //                    val clientVersionStalenessDays = info.clientVersionStalenessDays()
+       //                    if (clientVersionStalenessDays != null && clientVersionStalenessDays >= 90 && info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+       //                        // Trigger IMMEDIATE flow
+       //                        startUpdate(info, AppUpdateType.IMMEDIATE)
+       //                    } else if (clientVersionStalenessDays != null && clientVersionStalenessDays >= 30 && info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+       //                        // Trigger FLEXIBLE flow
+       //                        startUpdate(info, AppUpdateType.FLEXIBLE)
+       //                    }
+       //                } else if (info.updatePriority() == 1) { // Priority: 1
+       //                    // Trigger FLEXIBLE flow
+       //                    startUpdate(info, AppUpdateType.FLEXIBLE)
+       //                } else { // Priority: 0
+       //                    // Do not show in-app update
+       //                }
+                   } else {
+                       // UPDATE IS NOT AVAILABLE
+                   }
+               }
+               appUpdateManager.registerListener(this)
+           }
+       
+           private fun startUpdate(info: AppUpdateInfo, type: Int) {
+               appUpdateManager.startUpdateFlowForResult(info, type, parentActivity, MY_REQUEST_CODE)
+               currentType = type
+           }
+       
+           fun onResume() {
+               appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+                   if (currentType == AppUpdateType.FLEXIBLE) {
+                       // If the update is downloaded but not installed, notify the user to complete the update.
+                       if (info.installStatus() == InstallStatus.DOWNLOADED) flexibleUpdateDownloadCompleted()
+                   } else if (currentType == AppUpdateType.IMMEDIATE) {
+                       // for AppUpdateType.IMMEDIATE only, already executing updater
+                       if (info.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                           startUpdate(info, AppUpdateType.IMMEDIATE)
+                       }
+                   }
+               }
+           }
+       
+           fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+               if (requestCode == MY_REQUEST_CODE) {
+                   if (resultCode != AppCompatActivity.RESULT_OK) {
+                       // If the update is cancelled or fails, you can request to start the update again.
+                       Log.e("ERROR", "Update flow failed! Result code: $resultCode")
+                   }
+               }
+           }
+       
+           private fun flexibleUpdateDownloadCompleted() {
+               Snackbar.make(
+                   parentActivity.findViewById(android.R.id.content),
+                   "An update has just been downloaded.",
+                   Snackbar.LENGTH_INDEFINITE
+               ).apply {
+                   setAction("RESTART") { appUpdateManager.completeUpdate() }
+                   setActionTextColor(Color.WHITE)
+                   show()
+               }
+           }
+       
+           fun onDestroy() {
+               appUpdateManager.unregisterListener(this)
+           }
+       
+           override fun onStateUpdate(state: InstallState) {
+               if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                   flexibleUpdateDownloadCompleted()
+               }
+           }
+       }
+    
+       in MainAct
+           private var inAppUpdate: InAppUpdate? = null
+    
+    
+        inAppUpdate = InAppUpdate(this)
+    
+        inAppUpdate?.onActivityResult(requestCode, resultCode, data)
+        inAppUpdate?.onResume()
+        inAppUpdate?.onDestroy()
+        
+// WrapHeightViewPager
+
+       public class WrapHeightViewPager extends ViewPager {
+           public WrapHeightViewPager(Context context) {
+               super(context);
+           }
+       
+           public WrapHeightViewPager(Context context, AttributeSet attrs) {
+               super(context, attrs);
+           }
+       
+           @Override
+           protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+               int height = 0;
+               View view = null;
+               for (int i = 0; i < getChildCount(); i++) {
+                   view = getChildAt(i);
+                   view.measure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+                   int h = view.getMeasuredHeight();
+                   if (h > height) height = h;
+               }
+       
+               if (height != 0) {
+                   heightMeasureSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
+               }
+               super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+               setMeasuredDimension(getMeasuredWidth(), measureHeight(heightMeasureSpec, view));
+           }
+       
+           private int measureHeight(int measureSpec, View view) {
+               int result = 0;
+               int specMode = MeasureSpec.getMode(measureSpec);
+               int specSize = MeasureSpec.getSize(measureSpec);
+       
+               if (specMode == MeasureSpec.EXACTLY) {
+                   result = specSize;
+               } else {
+                   // set the height from the base view if available
+                   if (view != null) {
+                       result = view.getMeasuredHeight();
+                   }
+                   if (specMode == MeasureSpec.AT_MOST) {
+                       result = Math.min(result, specSize);
+                   }
+               }
+               return result;
+           }
+       }
+
+
+// Safty Net
+
+    
+      // play intigrity
+          coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
+         implementation("com.google.apis:google-api-services-playintegrity:v1-rev20220211-1.32.1")
+         implementation("com.google.apis:google-api-services-playintegrity:v1-rev20231109-2.0.0")
+         //  Google Authentication
+         implementation("com.google.api-client:google-api-client-jackson2:1.20.0")
+         implementation("com.google.auth:google-auth-library-credentials:1.20.0")
+         implementation 'com.google.auth:google-auth-library-credentials:1.20.0'
+         implementation("com.google.auth:google-auth-library-oauth2-http:1.20.0")
+         implementation("com.google.android.play:integrity:1.3.0")
+         implementation 'com.scottyab:rootbeer-lib:0.1.0'
+    
+         in asset -> addJson File 
+         in Build.gradl File ->     
+         buildConfigField("String", "CLOUD_PROJECT_NUM", "100200")
+    
+       buildTypes {
+             release {
+                 minifyEnabled true
+                 shrinkResources true
+     //            signingConfig signingConfigs.release
+                 proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                 firebaseCrashlytics {
+                     nativeSymbolUploadEnabled true
+                 }
+                 signingConfig signingConfigs.debug
+                 buildConfigField("String", "CLOUD_PROJECT_NUM", "\"00000\"")
+     //            signingConfig signingConfigs.debug
+                 ndk {
+                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+                 }
+             }
+     
+             debug {
+                 buildConfigField("String", "CLOUD_PROJECT_NUM", "\"00000\"")
+                 minifyEnabled false
+                 shrinkResources false
+                 proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                 firebaseCrashlytics {
+                     nativeSymbolUploadEnabled false
+                 }
+                 ndk {
+                     abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
+                 }
+     //            ndk {
+     //                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+     //            }
+             }
+         }
+    
+               packagingOptions {
+             exclude("META-INF/DEPENDENCIES")
+             exclude("META-INF/LICENSE")
+             exclude("META-INF/LICENSE.txt")
+             exclude("META-INF/license.txt")
+             exclude("META-INF/NOTICE")
+             exclude("META-INF/NOTICE.txt")
+             exclude("META-INF/notice.txt")
+             exclude("META-INF/ASL2.0")
+             exclude("META-INF/*.kotlin_module")
+         }
+    
+            
+        /*
+        
+        
+        -keep class com.google.api.services.playintegrity.** { *; } #REQUIRED
+        -keep class com.google.api.client.** { *; } #REQUIRED
+        
+        
+        private fun playSafety() {
+                Protectivity(this, BuildConfig.CLOUD_PROJECT_NUM.toLong(), {
+                    initview()
+                }, {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName")))
+                })
+            }
+        
+                buildConfigField("String", "CLOUD_PROJECT_NUM", "\"787207734962\"")
+        
+                coreLibraryDesugaringEnabled = true
+        
+        *  //Play integrity
+            implementation("com.google.android.play:integrity:1.3.0")
+        
+            implementation 'com.google.android.gms:play-services-auth:20.7.0'
+            implementation("com.google.apis:google-api-services-playintegrity:v1-rev20231109-2.0.0") {}
+            //  Google Authentication and api Access
+            implementation("com.google.api-client:google-api-client-jackson2:1.20.0")
+            implementation 'com.google.auth:google-auth-library-credentials:1.20.0'
+            implementation("com.google.auth:google-auth-library-oauth2-http:1.20.0")
+        
+            //desugar
+            coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+        * */
+        
+        class Protectivity {
+            private var onNext : () -> Unit
+            private var onReCheck : () -> Unit
+            var activity : Activity
+            private lateinit var interPin : StandardIntegrityManager.StandardIntegrityToken
+        
+            constructor(activity : Activity, cloudProjectNumber : Long, onNext : () -> Unit, onReCheck : () -> Unit) {
+                this.onNext = onNext
+                this.onReCheck = onReCheck
+                this.activity = activity
+        
+                if(activity.isOnlineed) {
+                    val standardIntegrityManager : StandardIntegrityManager = IntegrityManagerFactory.createStandard(activity)
+                    var integrityTokenProvider : StandardIntegrityManager.StandardIntegrityTokenProvider
+                    val standardIntegrityResponse = standardIntegrityManager.prepareIntegrityToken(
+                            StandardIntegrityManager.PrepareIntegrityTokenRequest.builder().setCloudProjectNumber(cloudProjectNumber).build()
+                    )
+                    standardIntegrityResponse.addOnSuccessListener {
+                        integrityTokenProvider = it
+                        val integrityTokenResponse : Task<StandardIntegrityManager.StandardIntegrityToken>? = integrityTokenProvider.request(
+                                StandardIntegrityManager.StandardIntegrityTokenRequest.builder().setRequestHash(generateNonce()).build()
+                        )
+                        integrityTokenResponse?.addOnSuccessListener { response ->
+                            interPin = response
+                            decryptToken(response.token())
+                        }?.addOnFailureListener {
+                            rootHunter(activity)
+                        }
+                    }.addOnFailureListener {
+                        "Token Exception $it".logPlay()
+                        rootHunter(activity)
+                    }
+        
+                } else {
+                    rootHunter(activity)
+                }
+            }
+        
+            private fun decryptToken(token : String) {
+        
+                val requestObj = DecodeIntegrityTokenRequest()
+                requestObj.integrityToken = token
+                val credentials = GoogleCredentials.fromStream(activity.assets.open("credentials.json"))
+                val requestInitializer : HttpRequestInitializer = HttpCredentialsAdapter(credentials)
+                val mHttpTransport = NetHttpTransport()
+                val mJacksonFactory = JacksonFactory()
+                val mInitializer : GoogleClientRequestInitializer = PlayIntegrityRequestInitializer()
+        
+        
+                val playIntegrity =
+                    PlayIntegrity.Builder(mHttpTransport, mJacksonFactory, requestInitializer).setApplicationName(activity.resources.getString(
+                        R.string.app_name))
+                        .setGoogleClientRequestInitializer(mInitializer)
+                val play = playIntegrity.build()
+        
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val response = play.v1().decodeIntegrityToken(activity.packageName, requestObj).execute()
+                        "response $response".logPlay()
+                        recognizer(response)
+                    } catch (e : Exception) {
+                        "response Exception :$e".logPlay()
+                        rootHunter(activity)
+                    }
+                }
+            }
+        
+            private fun recognizer(response : DecodeIntegrityTokenResponse) {
+        
+                val appLicensingVerdict = response.tokenPayloadExternal.accountDetails.appLicensingVerdict
+        
+                val appRecognitionVerdict = response.tokenPayloadExternal.appIntegrity.appRecognitionVerdict
+        
+                val deviceRecognitionVerdict = response.tokenPayloadExternal.deviceIntegrity.deviceRecognitionVerdict
+                val isSafeLast =
+                    response.tokenPayloadExternal.accountDetails.appLicensingVerdict.isNotEmpty() && appLicensingVerdict.contains("LICENSED") && appRecognitionVerdict.contains(
+                            "PLAY_RECOGNIZED"
+                    ) && deviceRecognitionVerdict.contains("MEETS_DEVICE_INTEGRITY")
+                if(isSafeLast) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onNext.invoke()
+                    }
+        
+                } else {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        this@Protectivity.playDialog(isLICENSED = getDialogTypeCode(appLicensingVerdict))
+                    }
+                }
+            }
+        
+            private fun generateNonce() : String {
+                val length = 50
+                var nonce = ""
+                val allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+                for (i in 0 until length) {
+                    nonce += allowed[floor(Math.random() * allowed.length).toInt()].toString()
+                }
+                return nonce
+            }
+        
+            private fun rootHunter(activity : Activity, respond : () -> Unit = onNext) {
+                val rootBeer = RootBeer(activity)
+                if(! rootBeer.isRooted || ! rootBeer.isRootedWithBusyBoxCheck) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        respond.invoke()
+                    }
+                } else {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        if(! activity.isFinishing) {
+                            PlayInitDialog(activity)
+                        }
+                    }
+                }
+            }
+        
+            private fun playDialog(isLICENSED : Int) {
+                interPin.showDialog(activity, /*isLICENSED*/ GET_LICENSED).addOnCanceledListener {
+                    "Dialog closed".logPlay()
+                }.addOnSuccessListener {
+                    "==> ${it}".logPlay()
+                }.addOnCompleteListener {
+                    if(it.result == DIALOG_SUCCESSFUL) {
+                        "DIALOG_SUCCESSFUL".logPlay()
+                        onReCheck.invoke()
+                    }
+                    if(it.result == DIALOG_CANCELLED) {
+                        "DIALOG_CANCELLED".logPlay()
+                        activity.finishAffinity()
+                        exitProcess(0)
+                    }
+                    if(it.result == DIALOG_FAILED) {
+                        "DIALOG_FAILED".logPlay()
+                    }
+                    if(it.result == DIALOG_UNAVAILABLE) {
+                        "DIALOG_UNAVAILABLE".logPlay()
+                    }
+                }.addOnFailureListener {
+                    "dialog Exception = ${it.message}".logPlay()
+                }
+            }
+        
+            private fun getDialogTypeCode(appLicensingVerdict : String) : Int {
+                return if(appLicensingVerdict == "UNLICENSED") {
+                    GET_LICENSED
+                } else 0
+            }
+        }
+          
+          //todo: Need to Add Below Lib
+          //implementation("com.google.apis:google-api-services-playintegrity:v1-rev20220211-1.32.1")
+          //    implementation("com.google.apis:google-api-services-playintegrity:v1-rev20231109-2.0.0")
+          //    //  Google Authentication
+          //    implementation("com.google.api-client:google-api-client-jackson2:1.20.0")
+          ////    implementation ("com.google.auth:google-auth-library-credentials:1.20.0")
+          //    implementation 'com.google.auth:google-auth-library-credentials:1.20.0'
+          //    implementation("com.google.auth:google-auth-library-oauth2-http:1.20.0")
+          //implementation("com.google.android.play:integrity:1.3.0")
+          //
+          //configurations {
+          //    all {
+          //        resolutionStrategy {
+          //            // Exclude specific modules causing conflicts
+          //            exclude group: 'com.google.android.play', module: 'core'
+          //        }
+          //    }
+          //}
+          //implementation 'com.google.android.play:app-update:2.1.0'
+          
+          //-keep class com.google.api.services.playintegrity.** { *; } #REQUIRED
+          //-keep class com.google.api.client.** { *; } #REQUIRED
+          
+          
+          //  PlaySafetyNetByFenil(this, 787207734962) {
+          //            //(Your Next Code)
+          //        }.sft()
+          
+          
+          // Asset-> add json credentials.json
+    
+     PlayInitDialog.kt
+     
+     class PlayInitDialog {
+         constructor(activity: Activity) {
+     
+     //        init {
+             var dialog: Dialog = Dialog(activity)
+             var bind: PlayinitLayoutBinding = PlayinitLayoutBinding.inflate(activity.layoutInflater)
+             dialog.setContentView(bind.root)
+             dialog.window!!.setBackgroundDrawableResource(android.R.color.transparent)
+             dialog.setCancelable(false)
+             dialog.show()
+     
+             bind.apply {
+                 btnExit.click {
+                     activity.finishAffinity()
+                 }
+                 btnInstallNow.click {
+                     try {
+                         activity.startActivity(
+                             Intent(
+                                 Intent.ACTION_VIEW,
+                                 Uri.parse("market://details?id=${activity.packageName}")
+                             )
+                         )
+                     } catch (e: ActivityNotFoundException) {
+                         activity.startActivity(
+                             Intent(
+                                 Intent.ACTION_VIEW,
+                                 Uri.parse("https://play.google.com/store/apps/details?id=${activity.packageName}")
+                             )
+                         )
+                     }
+     //                }
+                 }
+             }
+         }
+     }
+    
+     playinit_layout.xml
+    
+          <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+         xmlns:cardview="http://schemas.android.com/apk/res-auto"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="top|bottom|left|right|center_vertical|fill_vertical|center_horizontal|fill_horizontal|center|fill|start|end"
+         android:layout_marginLeft="10dp"
+         android:layout_marginRight="10dp"
+         android:elevation="5dp"
+         android:gravity="top|bottom|left|right|center_vertical|fill_vertical|center_horizontal|fill_horizontal|center|fill|start|end"
+         android:layoutDirection="ltr"
+         android:orientation="vertical"
+         cardview:cardCornerRadius="20dp"
+         cardview:cardElevation="5dp"
+         cardview:cardUseCompatPadding="true">
+     
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:background="@color/white"
+             android:orientation="vertical">
+     
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="top|bottom|left|right|center_vertical|fill_vertical|center_horizontal|fill_horizontal|center|fill|start|end"
+                 android:gravity="top|bottom|left|right|center_vertical|fill_vertical|center_horizontal|fill_horizontal|center|fill|start|end"
+                 android:orientation="vertical">
+     
+                 <TextView
+                     android:id="@+id/dialogTitle"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginTop="10dp"
+                     android:layout_marginBottom="10dp"
+                     android:fontFamily="@font/poppins"
+                     android:gravity="center"
+                     android:text="Alert"
+                     android:textColor="#FF0000"
+                     android:textSize="25sp" />
+     
+                 <TextView
+                     android:id="@+id/dialogMessage"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginHorizontal="10dp"
+                     android:layout_marginBottom="10dp"
+                     android:fontFamily="@font/poppins"
+                     android:gravity="center|left"
+                     android:justificationMode="inter_word"
+                     android:text="This app is not licensed or legally available on the Play Store. We kindly ask you to uninstall the current app. Please search for on the Play Store and install the official app to ensure a legal and authorized experience."
+                     android:textColor="@color/black"
+                     android:textSize="15sp" />
+     
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginStart="15dp"
+                     android:layout_marginTop="5dp"
+                     android:layout_marginEnd="15dp"
+                     android:layout_marginBottom="15dp"
+                     android:orientation="horizontal">
+     
+                     <TextView
+                         android:id="@+id/btnExit"
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:layout_marginLeft="10dp"
+                         android:layout_marginRight="10dp"
+                         android:layout_weight="1"
+                         android:background="@drawable/edround"
+                         android:backgroundTint="#FF0000"
+                         android:fontFamily="@font/poppins"
+                         android:gravity="center"
+                         android:padding="7dp"
+                         android:text="Exit"
+                         android:textAllCaps="true"
+                         android:textColor="@color/white"
+                         android:textSize="13sp"
+                         android:textStyle="bold" />
+     
+                     <TextView
+                         android:id="@+id/btnInstallNow"
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:layout_marginLeft="10dp"
+                         android:layout_marginRight="10dp"
+                         android:layout_weight="1"
+                         android:background="@drawable/edround"
+                         android:backgroundTint="#F44336"
+                         android:ellipsize="end"
+                         android:fontFamily="@font/poppins"
+                         android:gravity="center"
+                         android:padding="7dp"
+                         android:singleLine="true"
+                         android:text="Install Now"
+                         android:textAllCaps="true"
+                         android:textColor="@color/white"
+                         android:textSize="13sp"
+                         android:textStyle="bold" />
+     
+                 </LinearLayout>
+     
+             </LinearLayout>
+     
+         </LinearLayout>
+     
+     </androidx.cardview.widget.CardView>
+    
+    // Now in SplaceScreen
+    
+      if (NetworkHelper.isOnline(this)) {
+                        PlaySafety(this, BuildConfig.CLOUD_PROJECT_NUM.toLong()) {
+                            if (isOpenSearchAct) {
+                                openActivity(SearchDataActivity::class.java) {
+                                    putString("keyword", firebase_value)
+                                    putBoolean("isFromNotify", true)
+                                }
+                                finish()
+                            } else {
+                                //            openActivity(MainActivity::class.java)
+                                if (isSubScribe) openActivity(MainActivity::class.java)
+                                else openSubscription()
+                            }
+                            overridePendingTransition(0, 0)
+                        }.sft()
+                    } else {
+                        PlaySafety(this, BuildConfig.CLOUD_PROJECT_NUM.toLong()) {
+    
+                            if (isOpenSearchAct) {
+                                openActivity(SearchDataActivity::class.java) {
+                                    putString("keyword", firebase_value)
+                                    putBoolean("isFromNotify", true)
+                                }
+                                finish()
+                            } else {
+                                //            openActivity(MainActivity::class.java)
+                                if (isSubScribe) openActivity(MainActivity::class.java)
+                                else openSubscription()
+                            }
+                            overridePendingTransition(0, 0)
+                        }.cxroot()
+                    }
+
+
 // Subscription & Revanue Cat class
                     
                     
@@ -69,480 +720,556 @@
     
             --------- BillingHelper Class -------
             
-                        
-                     object BillingHelper {
-                var billingClient: BillingClient? = null
-                var productIds: List<ProductBillingIDS> = listOf(
-                    ProductBillingIDS("subscribe_weekly_kriadl", BillingClient.ProductType.SUBS),
-                    ProductBillingIDS("subscribe_sixly_kriadl", BillingClient.ProductType.SUBS),
-                    ProductBillingIDS("subscribe_yearly_kriadl", BillingClient.ProductType.SUBS),
-                    ProductBillingIDS("subscribe_lifetime_kriadl", BillingClient.ProductType.INAPP)
-                )
-            
-                var myInAppProducts = ArrayList<BillingINAPPProduct>()
-            
-                var myProducts = ArrayList<BillingProduct>()
-                var liveMyProducts = MutableLiveData<List<BillingProduct>>()
-                private var isConsumable: Boolean = false
-                var mySubProducts = ArrayList<BillingProduct>()
-            
-                fun getBillingInit(
-                    billContextAct: Activity,
-                    billingKeys: List<ProductBillingIDS>,
-                    productPurchaseListener: ProductPurchaseListener,
-                    onNextAct: (Boolean) -> Unit
-                ) {
-                    StaticParam.productPurchaseListener = productPurchaseListener
-                    productIds = billingKeys
-                    billContext = billContextAct
-                    getBillingHelp(onNextAct)
+               implementation 'com.revenuecat.purchases:purchases:7.0.0'
+implementation "com.android.billingclient:billing-ktx:6.1.0"
+
+ ------ Splace Screen -------
+
+   var productIds = Arrays.asList(
+    ProductBillingIDS("subscribe_weekly_kriadl", BillingClient.ProductType.SUBS),
+    ProductBillingIDS("subscribe_sixly_kriadl", BillingClient.ProductType.SUBS),
+    ProductBillingIDS("subscribe_yearly_kriadl", BillingClient.ProductType.SUBS),
+    ProductBillingIDS("subscribe_lifetime_kriadl", BillingClient.ProductType.INAPP)
+)
+
+---------- call onCreate() -------
+
+       BillingHelper.getBillingInit(this, productIds, object : ProductPurchaseListener {
+            override fun onPurchase(message: String) {
+                ("onPurchase: $message").log()
+//                message.messageLog()
+            }
+
+            override fun onRevenueCatPurchased(purchases: CustomerInfo) {
+
+            }
+
+            override fun onPurchased(purchase: Purchase) {
+                Log.wtf("FATZ", "-- purchase: " + purchase.purchaseState)
+//                subsSharedFile.isSubscriber = (purchase.purchaseState != -1)
+//                subsSharedFile.purchaseProduct = purchase.toGson()
+//                subsSharedFile.purchaseProduct.logPurchase()
+                val isSubscriber = (purchase.purchaseState != -1)
+                isSubscribeFun(isSubscriber)
+            }
+
+            override fun onPurchaseFail(errorMessage: String) {
+
+            }
+        }) { isSubscribe ->
+            ("is Here Initialized is Subscribe: $isSubscribe").log()
+            runOnUiThread {
+                if (isFirstTime) {
+                    isFirstTime = false
+                    gotoLoadApp()
                 }
-            
-                //    var productIds = Arrays.asList("body_editor_monthly", "body_editor_yearly")
-            
-                fun getBillingHelp(onNextAct: (Boolean) -> Unit) {
-                    val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
-                        "Client Purchase Response : ${billingResult.responseCode}".bilLog()
-                    }
-                    billingClient =
-                        BillingClient.newBuilder(billContext!!).setListener(purchasesUpdatedListener)
-                            .enablePendingPurchases().setListener { billingResult, purchases ->
-                                when (billingResult.responseCode) {
-                                    BillingClient.BillingResponseCode.OK -> purchases?.forEach {
-                                        handlePurchase(it)
-                                    }
-            
-                                    BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
-                                        ("Item Already Owned").log()
-                                    }
-            
-                                    else -> {
-                                        when (billingResult.responseCode) {
-                                            BillingClient.BillingResponseCode.USER_CANCELED -> {
-                                                toastMaker(
-                                                    billContext!!,
-                                                    "You've cancelled the Google play billing process"
-                                                )
-                                                productPurchaseListener?.onPurchaseFail("You've cancelled the Google play billing process")
-                                            }
-                                        }
-                                        if (billingResult.responseCode !in arrayOf(
-                                                BillingClient.BillingResponseCode.USER_CANCELED,
-                                                BillingClient.BillingResponseCode.OK
-                                            )
-                                        ) {
+            }
+        }
+
+
+   private fun isSubscribeFun(isSubscribe: Boolean) {
+        Log.d("FATZ", "is Subscription: $isSubscribe")
+        StaticParam.purchaseListener.postValue(isSubscribe)
+
+        isSubscribedForAllGlobal(this, isSubscribe)
+
+//        MySharedPreferences(this).isSubscribe = if (BuildConfig.DEBUG) true else isSubscribe
+//        isSubScribe = if (BuildConfig.DEBUG) true else isSubscribe
+//        isSubScribeFromPicker = if (BuildConfig.DEBUG) true else isSubscribe
+
+        //        MySharedPreferences(this).isSubscribe = false
+//        isSubScribe = false
+//        isSubScribeFromPicker = false
+    }
+
+
+        --------- BillingHelper Class -------
+        
+                        object BillingHelper {
+            var billingClient: BillingClient? = null
+            var productIds: List<ProductBillingIDS> = listOf(
+                ProductBillingIDS("subscribe_weekly_kriadl", BillingClient.ProductType.SUBS),
+                ProductBillingIDS("subscribe_sixly_kriadl", BillingClient.ProductType.SUBS),
+                ProductBillingIDS("subscribe_yearly_kriadl", BillingClient.ProductType.SUBS),
+                ProductBillingIDS("subscribe_lifetime_kriadl", BillingClient.ProductType.INAPP)
+            )
+        
+            var myInAppProducts = ArrayList<BillingINAPPProduct>()
+        
+            var myProducts = ArrayList<BillingProduct>()
+            var liveMyProducts = MutableLiveData<List<BillingProduct>>()
+            private var isConsumable: Boolean = false
+            var mySubProducts = ArrayList<BillingProduct>()
+        
+            fun getBillingInit(
+                billContextAct: Activity,
+                billingKeys: List<ProductBillingIDS>,
+                productPurchaseListener: ProductPurchaseListener,
+                onNextAct: (Boolean) -> Unit
+            ) {
+                StaticParam.productPurchaseListener = productPurchaseListener
+                productIds = billingKeys
+                billContext = billContextAct
+                getBillingHelp(onNextAct)
+            }
+        
+            //    var productIds = Arrays.asList("body_editor_monthly", "body_editor_yearly")
+        
+            fun getBillingHelp(onNextAct: (Boolean) -> Unit) {
+                val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
+                    "Client Purchase Response : ${billingResult.responseCode}".bilLog()
+                }
+                billingClient =
+                    BillingClient.newBuilder(billContext!!).setListener(purchasesUpdatedListener)
+                        .enablePendingPurchases().setListener { billingResult, purchases ->
+                            when (billingResult.responseCode) {
+                                BillingClient.BillingResponseCode.OK -> purchases?.forEach {
+                                    handlePurchase(it)
+                                }
+        
+                                BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+                                    ("Item Already Owned").log()
+                                }
+        
+                                else -> {
+                                    when (billingResult.responseCode) {
+                                        BillingClient.BillingResponseCode.USER_CANCELED -> {
                                             toastMaker(
-                                                billContext!!, "Item not found or Google play billing error"
+                                                billContext!!,
+                                                "You've cancelled the Google play billing process"
                                             )
-                                            productPurchaseListener?.onPurchaseFail("Item not found or Google play billing error")
+                                            productPurchaseListener?.onPurchaseFail("You've cancelled the Google play billing process")
                                         }
+                                    }
+                                    if (billingResult.responseCode !in arrayOf(
+                                            BillingClient.BillingResponseCode.USER_CANCELED,
+                                            BillingClient.BillingResponseCode.OK
+                                        )
+                                    ) {
+                                        toastMaker(
+                                            billContext!!, "Item not found or Google play billing error"
+                                        )
+                                        productPurchaseListener?.onPurchaseFail("Item not found or Google play billing error")
                                     }
                                 }
-                            }.build()
-            
-                    billingClient?.startConnection(object : BillingClientStateListener {
-                        override fun onBillingSetupFinished(billingResult: BillingResult) {
-                            "Client Setup Response : ${billingResult.responseCode == BillingClient.BillingResponseCode.OK}".bilLog()
-                            ("Connection ").log("FATZ")
+                            }
+                        }.build()
+        
+                billingClient?.startConnection(object : BillingClientStateListener {
+                    override fun onBillingSetupFinished(billingResult: BillingResult) {
+        
+                        "Client Setup Response : ${billingResult.responseCode == BillingClient.BillingResponseCode.OK}".bilLog()
+                        ("Connection ").log("FATZ")
+        
+                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+        
+                            CoroutineScope(Dispatchers.IO).launch {
+                                subSkuPurchases(billingResult)
+                                inAppSkuPurchases(billingResult)
+                            }
+        
                             billingClient?.queryPurchasesAsync(
-                                QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS)
-                                    .build()
+                                QueryPurchasesParams.newBuilder()
+                                    .setProductType(BillingClient.ProductType.SUBS).build()
                             ) { _, purchases ->
                                 purchases.size.toString().log()
                                 if (purchases.size > 0) {
                                     ("Item Purchase").log("FATZ")
                                     isSubscribedForAllGlobal(billContext!!, true)
                                     StaticParam.purchaseListener.postValue(true)
-                                    onNextAct.invoke(isSubScribe)
+                                    onNextAct.invoke(true)
                                 } else {
                                     ("11 Item Not Purchase | Res Code: ${billingResult.responseCode}").log("FATZ")
-            //                        isSubscribedForAllGlobal(billContext!!, false)
-            //                        isSubscribeNewModul.value = false
+        //                        isSubscribedForAllGlobal(billContext!!, false)
+        //                        isSubscribeNewModul.value = false
                                     billingClient?.queryPurchasesAsync(
                                         QueryPurchasesParams.newBuilder()
                                             .setProductType(BillingClient.ProductType.INAPP).build()
                                     ) { _, purchases ->
                                         purchases.size.toString().log()
                                         if (purchases.size > 0) {
-                                            ("11 Item Purchas in Appe").log("FATZ")
+                                            ("11 Item Purchas in App").log("FATZ")
                                             isSubscribedForAllGlobal(billContext!!, true)
                                             StaticParam.purchaseListener.postValue(true)
-                                            onNextAct.invoke(isSubScribe)
+                                            onNextAct.invoke(true)
                                         } else {
                                             ("11 Item Not Purchase in APP | Res Code: ${billingResult.responseCode}").log(
                                                 "FATZ"
                                             )
                                             isSubscribedForAllGlobal(billContext!!, false)
-                                            onNextAct.invoke(isSubScribe)
-                                        }
-                                    }
-                                    if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            subSkuPurchases(billingResult)
-                                            inAppSkuPurchases(billingResult)
+                                            onNextAct.invoke(false)
                                         }
                                     }
                                 }
-            //                    onNextAct.invoke(isSubScribe)
                             }
-                        }
-            
-                        override fun onBillingServiceDisconnected() {
-                            "Client Disconnected ".bilLog()
-                        }
-                    })
-                }
-            
-            //    fun checkRestore(isRestoreOrNot:(Boolean) -> Unit) {
-            //        billingClient.startConnection(object : BillingClientStateListener {
-            //            override fun onBillingSetupFinished(billingResult: BillingResult) {
-            ////                "Client Setup Response : ${billingResult.responseCode == BillingClient.BillingResponseCode.OK}".bilLog()
-            //                ("Check Restore Connection ").log("FATZ")
-            //                billingClient.queryPurchasesAsync(
-            //                    QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS)
-            //                        .build()
-            //                ) { _, purchases ->
-            //                    purchases.size.toString().log()
-            //                    if (purchases.size > 0) {
-            //                        ("Item Purchase").log("FATZ")
-            //                        isSubscribedForAllGlobal(billContext!!, true)
-            //                        StaticParam.purchaseListener.postValue(true)
-            //                    } else {
-            //                        ("Item Not Purchase | Res Code: ${billingResult.responseCode}").log("FATZ")
-            //                        isSubscribedForAllGlobal(billContext!!, false)
-            ////                        isSubscribeNewModul.value = false
-            //                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-            //                            CoroutineScope(Dispatchers.IO).launch {
-            //                                subSkuPurchases(billingResult)
-            //                                inAppSkuPurchases(billingResult)
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //
-            //            override fun onBillingServiceDisconnected() {
-            //                "Client Disconnected ".bilLog()
-            //            }
-            //        })
-            //    }
-            
-                private suspend fun subSkuPurchases(billingResult: BillingResult) {
-                    billingClient?.queryPurchasesAsync(
-                        QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
-                    ) { _, purchases ->
-                        purchases.size.toString().log()
-            
-                        if (purchases.size > 0) {
-                            ("Item Purchase").log("FATZ")
+        //                    onNextAct.invoke(isSubScribe)
                         } else {
-                            ("Item Not Purchase").log("FATZ")
-                            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                                retriveMySKU()
-                            }
+                            isSubscribedForAllGlobal(billContext!!, false)
+                            onNextAct.invoke(false)
                         }
                     }
-                }
-            
-                fun getSkuProduct(
-                    queryParam: QueryProductDetailsParams, listener: ProductDetailsResponseListener
-                ) {
-                    billingClient?.queryProductDetailsAsync(queryParam, listener)
-                }
-            
-                fun makeProductPurchase(packageType: MyPackageType) {
-                    if (StaticParam.subsSharedFile?.isSubscriber == true) {
-                        toastMaker(billContext!!, "Already Subscribed!")
-                        return
-                    }
-            
-                    if (productIds.isEmpty()) return
-            
-                    if (packageType == MyPackageType.LIFETIME) {
-                        val queryProductDetailsParams = newBuilder().setProductList(
-                            listOf(
-                                Product.newBuilder().setProductId(productIds[3].id)
-                                    .setProductType(productIds[3].billingType).build()
-                            )
-                        ).build()
-                        getSkuProduct(queryProductDetailsParams) { billingResult, productDetails ->
-                            val fetchedProduct = fetchProduct(productIds[3].id, productDetails)
-                            fetchedProduct?.let {
-                                val productDetailsParamsList = listOf(
-                                    BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(it)
-                                        .build()
-                                )
-            
-                                val billingFlowParams = BillingFlowParams.newBuilder()
-                                    .setProductDetailsParamsList(productDetailsParamsList).build()
-                                val resultBill =
-                                    billingClient?.launchBillingFlow(billContext!!, billingFlowParams)
-            
-                                when (resultBill?.responseCode) {
-                                    BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
-                                        "Billing result: ITEM_ALREADY_OWNED".bilLog()
-                                        productPurchaseListener?.onPurchase("Product Already Purchased!")
-                                    }
-            
-                                    BillingClient.BillingResponseCode.OK -> {
-                                        "Billing result: OK".bilLog()
-                                        productPurchaseListener?.onPurchase("Product Available.")
-                                    }
-            
-                                    else -> {
-                                        "No Billing result".bilLog()
-                                        productPurchaseListener?.onPurchaseFail("No Purchase Made!")
-                                    }
-                                }
-                            }
+        
+                    override fun onBillingServiceDisconnected() {
+                        "Client Disconnected ".bilLog()
+                        CoroutineScope(Dispatchers.Main).launch {
+                            isSubscribedForAllGlobal(billContext!!, false)
+                            onNextAct.invoke(false)
                         }
-            
-            // Launch the billing flow
+                    }
+                })
+            }
+        
+        //    fun checkRestore(isRestoreOrNot:(Boolean) -> Unit) {
+        //        billingClient.startConnection(object : BillingClientStateListener {
+        //            override fun onBillingSetupFinished(billingResult: BillingResult) {
+        ////                "Client Setup Response : ${billingResult.responseCode == BillingClient.BillingResponseCode.OK}".bilLog()
+        //                ("Check Restore Connection ").log("FATZ")
+        //                billingClient.queryPurchasesAsync(
+        //                    QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS)
+        //                        .build()
+        //                ) { _, purchases ->
+        //                    purchases.size.toString().log()
+        //                    if (purchases.size > 0) {
+        //                        ("Item Purchase").log("FATZ")
+        //                        isSubscribedForAllGlobal(billContext!!, true)
+        //                        StaticParam.purchaseListener.postValue(true)
+        //                    } else {
+        //                        ("Item Not Purchase | Res Code: ${billingResult.responseCode}").log("FATZ")
+        //                        isSubscribedForAllGlobal(billContext!!, false)
+        ////                        isSubscribeNewModul.value = false
+        //                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+        //                            CoroutineScope(Dispatchers.IO).launch {
+        //                                subSkuPurchases(billingResult)
+        //                                inAppSkuPurchases(billingResult)
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //
+        //            override fun onBillingServiceDisconnected() {
+        //                "Client Disconnected ".bilLog()
+        //            }
+        //        })
+        //    }
+        
+            private suspend fun subSkuPurchases(billingResult: BillingResult) {
+                billingClient?.queryPurchasesAsync(
+                    QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
+                ) { _, purchases ->
+                    purchases.size.toString().log()
+        
+                    if (purchases.size > 0) {
+                        ("Item Subscription Purchase").log("FATZ")
                     } else {
-                    }
-                }
-            
-                private suspend fun inAppSkuPurchases(billingResult: BillingResult) {
-                    billingClient?.queryPurchasesAsync(
-                        QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP)
-                            .build()
-                    ) { _, purchases ->
-                        purchases.size.toString().log()
-            
-                        if (purchases.size > 0) {
-                            ("Item Purchase {INAPP}").log("FATZ")
-                        } else {
-                            ("Item Not Purchase {INAPP}").log("FATZ")
-                            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                                retriveMySkuInApp()
-                            }
+                        ("Item Subscription Not Purchase").log("FATZ")
+                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                            retriveMySKU()
                         }
                     }
                 }
-            
-                private fun retriveMySkuInApp() {
+            }
+        
+            fun getSkuProduct(
+                queryParam: QueryProductDetailsParams, listener: ProductDetailsResponseListener
+            ) {
+                billingClient?.queryProductDetailsAsync(queryParam, listener)
+            }
+        
+            fun makeProductPurchase(packageType: MyPackageType) {
+                if (StaticParam.subsSharedFile?.isSubscriber == true) {
+                    toastMaker(billContext!!, "Already Subscribed!")
+                    return
+                }
+        
+                if (productIds.isEmpty()) return
+        
+                if (packageType == MyPackageType.LIFETIME) {
                     val queryProductDetailsParams = newBuilder().setProductList(
                         listOf(
-            //                        Product.newBuilder().setProductId(productIds[0].id).setProductType(productIds[0].billingType).build(),
-            //                        Product.newBuilder().setProductId(productIds[1].id).setProductType(productIds[1].billingType).build(),
-            //                        Product.newBuilder().setProductId(productIds[2].id).setProductType(productIds[2].billingType).build(),
                             Product.newBuilder().setProductId(productIds[3].id)
                                 .setProductType(productIds[3].billingType).build()
                         )
                     ).build()
-                    getSkuProduct(queryProductDetailsParams) { billingResult, productDetailsList ->
-            //            Log.e("TAG", "retriveMySkuInApp: \n${productDetailsList.toGson()}\n")
-                        productDetailsList.forEach { product ->
-                            Log.e("TAG", "retriveMySkuInApp: \n${product.toGson()}\n")
-            
-                            val billingProduct = BillingINAPPProduct(product.productId)
-                            billingProduct.id = product.productId
-                            billingProduct.title = product.title
-                            billingProduct.description = product.description
-                            billingProduct.productType = product.productType
-                            // app's Product is One time purchasable, mean it's one kind of LIFETIME For Lifetime Subscription and PRODUCT for single
-                            billingProduct.packageType =
-                                if (product.title.contains("Lifetime")) MyPackageType.LIFETIME else MyPackageType.PRODUCT
-                            billingProduct.price = product.oneTimePurchaseOfferDetails?.formattedPrice ?: ""
-                            billingProduct.amountmicros =
-                                product.oneTimePurchaseOfferDetails?.priceAmountMicros ?: 0L
-                            myInAppProducts.add(billingProduct)
-                        }
-                        SubscriptionSetter.liveMyPlan.postValue("Google Play Plan")
-            
-                        liveMyInAppProducts.postValue(myInAppProducts)
-                        "myInAppProducts  :  $myInAppProducts".bilLog()
-                    }
-                }
-            
-                private fun retriveMySKU() {
-                    val queryProductDetailsParams = newBuilder().setProductList(
-                        listOf(
-                            Product.newBuilder().setProductId(productIds[0].id)
-                                .setProductType(productIds[0].billingType).build(),
-                            Product.newBuilder().setProductId(productIds[1].id)
-                                .setProductType(productIds[1].billingType).build(),
-                            Product.newBuilder().setProductId(productIds[2].id)
-                                .setProductType(productIds[2].billingType).build(),
-            //                        Product.newBuilder().setProductId(productIds[3].id).setProductType(productIds[3].billingType).build()
-                        )
-                    ).build()
-            
-                    getSkuProduct(queryProductDetailsParams) { billingResult, productDetailsList ->
-                        Log.e("TAG", "retriveMySKU: \n${productDetailsList.toGson()}\n")
-                        mySubProducts.clear()
-                        productDetailsList.forEach {
-                            val product = it
-                            product.subscriptionOfferDetails?.forEach { subsDet ->
-                                subsDet.pricingPhases.pricingPhaseList.forEachIndexed { index, pricingPhase ->
-                                    val billingProduct = BillingProduct(it.productId)
-                                    pricingPhase.billingPeriod.messageLog()
-                                    billingProduct.title = it.title
-                                    if (pricingPhase.billingPeriod == "P1W") {
-                                        billingProduct.packageType = MyPackageType.WEEK
-                                    } else if (pricingPhase.billingPeriod == "P1Y") {
-                                        billingProduct.packageType = MyPackageType.ANNUAL
-                                    } else if (pricingPhase.billingPeriod == "P6M") {
-                                        billingProduct.packageType = MyPackageType.SIX_MONTH
-                                    } else if (pricingPhase.billingPeriod == "P1M") {
-                                        billingProduct.packageType = MyPackageType.MONTH
-                                    }
-                                    Log.e("Purchase -->", "retriveMySKU: ${it.toGson()}\n")
-            
-                                    billingProduct.period = pricingPhase.billingPeriod
-                                    billingProduct.price = pricingPhase.formattedPrice
-                                    billingProduct.amountmicros = pricingPhase.priceAmountMicros
-                                    billingProduct.amountmicrostoPriceInt =
-                                        pricingPhase.priceAmountMicros.div(1000000.0).toInt()
-            //                        billingProduct.amountmicros = pricingPhase.priceAmountMicros
-                                    mySubProducts.add(billingProduct)
-                                }
-                            }
-                        }
-                        SubscriptionSetter.liveMyPlan.postValue("Google Play Plan")
-                        livePackageProduct.postValue(mySubProducts)
-                        "mySubProducts : $mySubProducts".bilLog()
-                    }
-                }
-            
-                fun makePurchase(type: MyPackageType) {
-                    if (StaticParam.subsSharedFile?.isSubscriber == true) {
-                        toastMaker(billContext!!, "Already Subscribed!")
-                        return
-                    }
-            
-                    if (productIds.isNotEmpty()) when (type) {
-                        MyPackageType.WEEK -> {
-                            purchaseMyProduct(productIds[0])
-                        }
-            
-                        MyPackageType.SIX_MONTH -> {
-                            purchaseMyProduct(productIds[1])
-                        }
-            
-                        MyPackageType.ANNUAL -> {
-                            purchaseMyProduct(productIds[2])
-                        }
-            
-                        MyPackageType.LIFETIME -> {
-                            purchaseMyProduct(productIds[3])
-                        }
-            
-                        else -> {
-            
-                        }
-                    }
-                }
-            
-                private fun purchaseMyProduct(productIDS: ProductBillingIDS) {
-                    val queryProductDetailsParams = newBuilder().setProductList(
-                        listOf(
-                            Product.newBuilder().setProductId(productIDS.id)
-                                .setProductType(productIDS.billingType).build()
-                        )
-                    ).build()
                     getSkuProduct(queryProductDetailsParams) { billingResult, productDetails ->
-            //            Log.e("TAG", "purchaseMyProduct: ${productDetails.toGson()}")
-                        val fetchedProduct = fetchProduct(productIDS.id, productDetails)
-                        fetchedProduct?.let { product ->
-                            Log.e(
-                                "TAG",
-                                "purchaseMyProduct: 1  ${product.oneTimePurchaseOfferDetails?.toGson()}  "
+                        val fetchedProduct = fetchProduct(productIds[3].id, productDetails)
+                        fetchedProduct?.let {
+                            val productDetailsParamsList = listOf(
+                                BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(it)
+                                    .build()
                             )
-            
-                            val offerToken = product.subscriptionOfferDetails?.get(0)?.offerToken
-                            offerToken?.let { token ->
-                                Log.e("TAG", "purchaseMyProduct: 2 $token")
-            
-                                val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
-                                    .setProductDetails(product).setOfferToken(token).build()
-            
-                                val billingFlowParams = BillingFlowParams.newBuilder()
-                                    .setProductDetailsParamsList(mutableListOf(productDetailsParams)).build()
-            
-                                val resultBill =
-                                    billingClient?.launchBillingFlow(billContext!!, billingFlowParams)
-            
-                                when (resultBill?.responseCode) {
-                                    BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
-                                        "Billing result: ITEM_ALREADY_OWNED".bilLog()
-                                        productPurchaseListener?.onPurchase("Product Already Purchased!")
-                                    }
-            
-                                    BillingClient.BillingResponseCode.OK -> {
-                                        "Billing result: OK".bilLog()
-                                        productPurchaseListener?.onPurchase("Product Success Fully Purchased.")
-                                    }
-            
-                                    else -> {
-                                        "No Billing result".bilLog()
-                                        productPurchaseListener?.onPurchaseFail("No Purchase Made!")
-                                    }
+        
+                            val billingFlowParams = BillingFlowParams.newBuilder()
+                                .setProductDetailsParamsList(productDetailsParamsList).build()
+                            val resultBill =
+                                billingClient?.launchBillingFlow(billContext!!, billingFlowParams)
+        
+                            when (resultBill?.responseCode) {
+                                BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+                                    "Billing result: ITEM_ALREADY_OWNED".bilLog()
+                                    productPurchaseListener?.onPurchase("Product Already Purchased!")
+                                }
+        
+                                BillingClient.BillingResponseCode.OK -> {
+                                    "Billing result: OK".bilLog()
+                                    productPurchaseListener?.onPurchase("Product Available.")
+                                }
+        
+                                else -> {
+                                    "No Billing result".bilLog()
+                                    productPurchaseListener?.onPurchaseFail("No Purchase Made!")
                                 }
                             }
                         }
                     }
+        
+        // Launch the billing flow
+                } else {
                 }
-            
-                private fun fetchProduct(key: String, productDetails: List<ProductDetails>): ProductDetails? {
-                    var product = productDetails.find { it.productId == key }
-                    return product
-                }
-            
-                private fun handlePurchase(purchase: Purchase) {
-            
-                    Log.e("TAG", "handlePurchase: ${purchase.toGson()}")
-                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-                        for (product in purchase.products) {
-                            productIds.forEach {
-                                if (it.id == product) {
-                                    productPurchaseListener?.onPurchased(purchase)
-                                }
-                            }
+            }
+        
+            private suspend fun inAppSkuPurchases(billingResult: BillingResult) {
+                billingClient?.queryPurchasesAsync(
+                    QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP)
+                        .build()
+                ) { _, purchases ->
+                    purchases.size.toString().log()
+        
+                    if (purchases.size > 0) {
+                        ("Item Purchase {INAPP}").log("FATZ")
+                    } else {
+                        ("Item Not Purchase {INAPP}").log("FATZ")
+                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                            retriveMySkuInApp()
                         }
-                    }
-                    CoroutineScope(Dispatchers.IO).launch {
-                        acknowledgePurchase(purchase = purchase)
-                        if (isConsumable) {
-                            consumePurchase(purchase = purchase)
-                        }
-                    }
-                }
-            
-                private suspend fun acknowledgePurchase(purchase: Purchase) {
-                    if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
-                        val acknowledgePurchaseParams =
-                            AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken)
-            
-                        val ackPurchaseResult = withContext(Dispatchers.IO) {
-                            billingClient?.acknowledgePurchase(acknowledgePurchaseParams.build(),
-                                object : AcknowledgePurchaseResponseListener {
-                                    override fun onAcknowledgePurchaseResponse(acknowledgePurchaseResult: BillingResult) {
-                                        "acknowledgePurchase: ${acknowledgePurchaseResult.responseCode}".bilLog()
-                                    }
-                                })
-                        }
-            
-                        if (ackPurchaseResult != null) {
-                            "acknowledgePurchase: ".bilLog()
-                        } else {
-                            "acknowledgePurchase: =>> Not Found Any Purchase Result".bilLog()
-                        }
-                    }
-                }
-            
-                fun consumePurchase(purchase: Purchase) {
-                    val consumeParams =
-                        ConsumeParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
-                    billingClient?.let {
-                        it.consumeAsync(consumeParams, object : ConsumeResponseListener {
-                            override fun onConsumeResponse(consumeResult: BillingResult, p1: String) {
-                                "consumePurchase: ${consumeResult.responseCode}".bilLog()
-                            }
-                        })
                     }
                 }
             }
+        
+            private fun retriveMySkuInApp() {
+                val queryProductDetailsParams = newBuilder().setProductList(
+                    listOf(
+        //                        Product.newBuilder().setProductId(productIds[0].id).setProductType(productIds[0].billingType).build(),
+        //                        Product.newBuilder().setProductId(productIds[1].id).setProductType(productIds[1].billingType).build(),
+        //                        Product.newBuilder().setProductId(productIds[2].id).setProductType(productIds[2].billingType).build(),
+                        Product.newBuilder().setProductId(productIds[3].id)
+                            .setProductType(productIds[3].billingType).build()
+                    )
+                ).build()
+                getSkuProduct(queryProductDetailsParams) { billingResult, productDetailsList ->
+        //            Log.e("TAG", "retriveMySkuInApp: \n${productDetailsList.toGson()}\n")
+                    productDetailsList.forEach { product ->
+                        Log.e("TAG", "retriveMySkuInApp: \n${product.toGson()}\n")
+        
+                        val billingProduct = BillingINAPPProduct(product.productId)
+                        billingProduct.id = product.productId
+                        billingProduct.title = product.title
+                        billingProduct.description = product.description
+                        billingProduct.productType = product.productType
+                        // app's Product is One time purchasable, mean it's one kind of LIFETIME For Lifetime Subscription and PRODUCT for single
+                        billingProduct.packageType =
+                            if (product.title.contains("Lifetime")) MyPackageType.LIFETIME else MyPackageType.PRODUCT
+                        billingProduct.price = product.oneTimePurchaseOfferDetails?.formattedPrice ?: ""
+                        billingProduct.amountmicros =
+                            product.oneTimePurchaseOfferDetails?.priceAmountMicros ?: 0L
+                        myInAppProducts.add(billingProduct)
+                    }
+                    SubscriptionSetter.liveMyPlan.postValue("Google Play Plan")
+        
+                    liveMyInAppProducts.postValue(myInAppProducts)
+                    "myInAppProducts  :  $myInAppProducts".bilLog()
+                }
+            }
+        
+            private fun retriveMySKU() {
+                val queryProductDetailsParams = newBuilder().setProductList(
+                    listOf(
+                        Product.newBuilder().setProductId(productIds[0].id)
+                            .setProductType(productIds[0].billingType).build(),
+                        Product.newBuilder().setProductId(productIds[1].id)
+                            .setProductType(productIds[1].billingType).build(),
+                        Product.newBuilder().setProductId(productIds[2].id)
+                            .setProductType(productIds[2].billingType).build(),
+        //                        Product.newBuilder().setProductId(productIds[3].id).setProductType(productIds[3].billingType).build()
+                    )
+                ).build()
+        
+                getSkuProduct(queryProductDetailsParams) { billingResult, productDetailsList ->
+                    Log.e("TAG", "retriveMySKU: \n${productDetailsList.toGson()}\n")
+                    mySubProducts.clear()
+                    productDetailsList.forEach {
+                        val product = it
+                        product.subscriptionOfferDetails?.forEach { subsDet ->
+                            subsDet.pricingPhases.pricingPhaseList.forEachIndexed { index, pricingPhase ->
+                                val billingProduct = BillingProduct(it.productId)
+                                pricingPhase.billingPeriod.messageLog()
+                                billingProduct.title = it.title
+                                if (pricingPhase.billingPeriod == "P1W") {
+                                    billingProduct.packageType = MyPackageType.WEEK
+                                } else if (pricingPhase.billingPeriod == "P1Y") {
+                                    billingProduct.packageType = MyPackageType.ANNUAL
+                                } else if (pricingPhase.billingPeriod == "P6M") {
+                                    billingProduct.packageType = MyPackageType.SIX_MONTH
+                                } else if (pricingPhase.billingPeriod == "P1M") {
+                                    billingProduct.packageType = MyPackageType.MONTH
+                                }
+                                Log.e("Purchase -->", "retriveMySKU: ${it.toGson()}\n")
+        
+                                billingProduct.period = pricingPhase.billingPeriod
+                                billingProduct.price = pricingPhase.formattedPrice
+                                billingProduct.amountmicros = pricingPhase.priceAmountMicros
+                                billingProduct.amountmicrostoPriceInt =
+                                    pricingPhase.priceAmountMicros.div(1000000.0).toInt()
+        //                        billingProduct.amountmicros = pricingPhase.priceAmountMicros
+                                mySubProducts.add(billingProduct)
+                            }
+                        }
+                    }
+                    SubscriptionSetter.liveMyPlan.postValue("Google Play Plan")
+                    livePackageProduct.postValue(mySubProducts)
+                    "mySubProducts : $mySubProducts".bilLog()
+                }
+            }
+        
+            fun makePurchase(type: MyPackageType) {
+                if (StaticParam.subsSharedFile?.isSubscriber == true) {
+                    toastMaker(billContext!!, "Already Subscribed!")
+                    return
+                }
+        
+                if (productIds.isNotEmpty()) when (type) {
+                    MyPackageType.WEEK -> {
+                        purchaseMyProduct(productIds[0])
+                    }
+        
+                    MyPackageType.SIX_MONTH -> {
+                        purchaseMyProduct(productIds[1])
+                    }
+        
+                    MyPackageType.ANNUAL -> {
+                        purchaseMyProduct(productIds[2])
+                    }
+        
+                    MyPackageType.LIFETIME -> {
+                        purchaseMyProduct(productIds[3])
+                    }
+        
+                    else -> {
+        
+                    }
+                }
+            }
+        
+            private fun purchaseMyProduct(productIDS: ProductBillingIDS) {
+                val queryProductDetailsParams = newBuilder().setProductList(
+                    listOf(
+                        Product.newBuilder().setProductId(productIDS.id)
+                            .setProductType(productIDS.billingType).build()
+                    )
+                ).build()
+                getSkuProduct(queryProductDetailsParams) { billingResult, productDetails ->
+        //            Log.e("TAG", "purchaseMyProduct: ${productDetails.toGson()}")
+                    val fetchedProduct = fetchProduct(productIDS.id, productDetails)
+                    fetchedProduct?.let { product ->
+                        Log.e(
+                            "TAG",
+                            "purchaseMyProduct: 1  ${product.oneTimePurchaseOfferDetails?.toGson()}  "
+                        )
+        
+                        val offerToken = product.subscriptionOfferDetails?.get(0)?.offerToken
+                        offerToken?.let { token ->
+                            Log.e("TAG", "purchaseMyProduct: 2 $token")
+        
+                            val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+                                .setProductDetails(product).setOfferToken(token).build()
+        
+                            val billingFlowParams = BillingFlowParams.newBuilder()
+                                .setProductDetailsParamsList(mutableListOf(productDetailsParams)).build()
+        
+                            val resultBill =
+                                billingClient?.launchBillingFlow(billContext!!, billingFlowParams)
+        
+                            when (resultBill?.responseCode) {
+                                BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+                                    "Billing result: ITEM_ALREADY_OWNED".bilLog()
+                                    productPurchaseListener?.onPurchase("Product Already Purchased!")
+                                }
+        
+                                BillingClient.BillingResponseCode.OK -> {
+                                    "Billing result: OK".bilLog()
+                                    productPurchaseListener?.onPurchase("Product Success Fully Purchased.")
+                                }
+        
+                                else -> {
+                                    "No Billing result".bilLog()
+                                    productPurchaseListener?.onPurchaseFail("No Purchase Made!")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        
+            private fun fetchProduct(key: String, productDetails: List<ProductDetails>): ProductDetails? {
+                var product = productDetails.find { it.productId == key }
+                return product
+            }
+        
+            private fun handlePurchase(purchase: Purchase) {
+        
+                Log.e("TAG", "handlePurchase: ${purchase.toGson()}")
+                if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                    for (product in purchase.products) {
+                        productIds.forEach {
+                            if (it.id == product) {
+                                productPurchaseListener?.onPurchased(purchase)
+                            }
+                        }
+                    }
+                }
+                CoroutineScope(Dispatchers.IO).launch {
+                    acknowledgePurchase(purchase = purchase)
+                    if (isConsumable) {
+                        consumePurchase(purchase = purchase)
+                    }
+                }
+            }
+        
+            private suspend fun acknowledgePurchase(purchase: Purchase) {
+                if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
+                    val acknowledgePurchaseParams =
+                        AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken)
+        
+                    val ackPurchaseResult = withContext(Dispatchers.IO) {
+                        billingClient?.acknowledgePurchase(acknowledgePurchaseParams.build(),
+                            object : AcknowledgePurchaseResponseListener {
+                                override fun onAcknowledgePurchaseResponse(acknowledgePurchaseResult: BillingResult) {
+                                    "acknowledgePurchase: ${acknowledgePurchaseResult.responseCode}".bilLog()
+                                }
+                            })
+                    }
+        
+                    if (ackPurchaseResult != null) {
+                        "acknowledgePurchase: ".bilLog()
+                    } else {
+                        "acknowledgePurchase: =>> Not Found Any Purchase Result".bilLog()
+                    }
+                }
+            }
+        
+            fun consumePurchase(purchase: Purchase) {
+                val consumeParams =
+                    ConsumeParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
+                billingClient?.let {
+                    it.consumeAsync(consumeParams, object : ConsumeResponseListener {
+                        override fun onConsumeResponse(consumeResult: BillingResult, p1: String) {
+                            "consumePurchase: ${consumeResult.responseCode}".bilLog()
+                        }
+                    })
+                }
+            }
+        }
+
             
             @Keep
             enum class MyPackageType {

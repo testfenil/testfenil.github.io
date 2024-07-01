@@ -1,6 +1,7 @@
 # testfenil.github.io
 
 
+
 // WhatsApp Sticker add to Whatsapp
 
         
@@ -11662,7 +11663,11 @@ implementation "com.android.billingclient:billing-ktx:6.1.0"
 
     fun callapi() {
 
+
     interface Api {
+     @GET("{filename}")
+        fun downloadPdf(@Path("filename") fullUrl: String): Call<ResponseBody?>?
+        
     @GET(".")
     fun getInstaStory(
             @Header("Cookie") Cookie: String,

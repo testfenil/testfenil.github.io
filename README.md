@@ -1,7 +1,135 @@
 # testfenil.github.io
 
+// PDF Download Code Download PDF Files
+           
+                
+                class DownloadPdfTaskKt(var activity: Activity, var onNext: (File) -> Unit) :
+                    AsyncTask<String, Void, File>() {
+                    override fun doInBackground(vararg urls: String): File? {
+                        val url = urls[0]
+                        var pdfFile: File? = null
+                        try {
+                            val downloadUrl = URL(url)
+                            val urlConnection = downloadUrl.openConnection() as HttpURLConnection
+                            if (urlConnection.responseCode == HttpURLConnection.HTTP_OK) {
+                                // Download and write to storage
+                                val filename = url.substring(url.lastIndexOf("/") + 1) // Extract filename
+                                val file = File(
+                                    (activity.getExternalFilesDir(
+                                        Environment.getExternalStoragePublicDirectory(DIRECTORY_DOCUMENTS).toString()
+                                    )!!.path)
+                                )
+                
+                //                file.path.log()
+                                if (!file.exists()) file.mkdir()
+                
+                                pdfFile = File(
+                                    activity.getExternalFilesDir(
+                                        Environment.getExternalStoragePublicDirectory(DIRECTORY_DOCUMENTS)
+                                            .path
+                                    ), "mysallery.pdf"
+                                )
+                
+                                val outputStream = FileOutputStream(pdfFile)
+                                val inputStream: InputStream = BufferedInputStream(urlConnection.inputStream)
+                                val buffer = ByteArray(1024)
+                                var bytesRead: Int
+                                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                                    outputStream.write(buffer, 0, bytesRead)
+                                }
+                                outputStream.close()
+                                inputStream.close()
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace() // Log or handle exceptions
+                        }
+                        return pdfFile
+                    }
+                
+                    override fun onPostExecute(downloadedFile: File?) {
+                        if (downloadedFile != null) {
+                            // Handle download success (e.g., show success message, open PDF viewer)
+                            onNext(downloadedFile)
+                            Toast.makeText(activity, "PDF downloaded successfully!", Toast.LENGTH_SHORT).show()
+                            // Open downloaded PDF (consider using a PDF viewer library)
+                        } else {
+                            // Handle download failure (e.g., show error message)
+                            Toast.makeText(activity, "Download failed!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
 
 
+        
+          var downloapdf = DownloadPdfTaskKt(this) {
+                    ("Patgh: " + it.path).log()
+                    savefilepath = it.path
+                    CoroutineScope(Dispatchers.Main).launch {
+                        bind.pdfView.initWithFile(
+                            it
+                        )
+        //                openPdfFromFile(it.path)
+                    }
+                }
+        
+                downloapdf.execute(pdfUrl);
+
+
+
+                 fun openPdfFromFile(filePath: String) {
+        val context = this // Assuming you're calling this from an activity or fragment
+
+        val authority = "$packageName.provider"
+        val uri = FileProvider.getUriForFile(context, authority, File(filePath));
+
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.setDataAndType(uri, "application/pdf")
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Grant temporary read permission
+        startActivity(intent)
+    }
+
+
+        
+             fun sharePdfFromFile(pdfPath: String) {
+                val context = this // Assuming you're calling this from an activity or fragment
+        
+                val authority = packageName + ".provider"
+                val uri = FileProvider.getUriForFile(context, authority, File(pdfPath));
+        
+                val shareIntent = Intent(Intent.ACTION_SEND)
+                shareIntent.setType("application/pdf")
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // Grant temporary read permission
+                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                startActivity(Intent.createChooser(shareIntent, "Share PDF"));
+            }
+
+                
+                  <provider
+                            android:name="androidx.core.content.FileProvider"
+                            android:authorities="${applicationId}.provider"
+                            android:exported="false"
+                            android:grantUriPermissions="true">
+                            <meta-data
+                                android:name="android.support.FILE_PROVIDER_PATHS"
+                                android:resource="@xml/provider_paths" />
+                        </provider>
+
+
+
+                        ///  PDF Viewr view pdf libra
+
+                           <com.rajat.pdfviewer.PdfRendererView
+            android:id="@+id/pdfView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/shareid"
+            app:pdfView_divider="@drawable/pdf_viewer_divider"
+            app:pdfView_showDivider="false" />
+            
+        
+          //Pdf View
+            implementation("io.github.afreakyelf:Pdf-Viewer:2.1.1")
+            
 // WhatsApp Sticker add to Whatsapp
 
         

@@ -1,5 +1,45 @@
 # testfenil.github.io
 
+
+// Animation Poster Maker a wattermark
+
+      vibrate.xml
+
+      <rotate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="20"
+    android:fromDegrees="-5"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:repeatCount="20"
+    android:repeatMode="reverse"
+    android:toDegrees="5" />
+
+
+
+      val paramsAnimation = FrameLayout.LayoutParams(
+                    if (bgFrameLayout.width <= bgFrameLayout.height) bgFrameLayout.width / 6 else FrameLayout.LayoutParams.WRAP_CONTENT,
+                    if (bgFrameLayout.height <= bgFrameLayout.width) bgFrameLayout.height / 6 else FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+            paramsAnimation.gravity = Gravity.BOTTOM or Gravity.END
+            paramsAnimation.bottomMargin = 25
+            paramsAnimation.marginEnd = 25
+            bind.ivWaterMarkAnimation.layoutParams = paramsAnimation
+            bind.ivWaterMarkAnimation.startAnimation(AnimationUtils.loadAnimation(this, R.anim.vibrate))
+
+            setAnimation()
+
+            
+    private var handler: Handler? = null
+    private val runnable = Runnable {
+        bind.ivWaterMarkAnimation.startAnimation(AnimationUtils.loadAnimation(this, R.anim.vibrate))
+        setAnimation()
+    }
+
+    private fun setAnimation() {
+        handler?.postDelayed(runnable, 3000)
+    }
+    
+
 // Crop and resize bitmap images resizebitmap cropbitmap
 
                            fun cropAndResizeBitmap(

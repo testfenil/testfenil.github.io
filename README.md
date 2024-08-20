@@ -1,5 +1,59 @@
 # testfenil.github.io
 
+// ZoomIn and Zoomout animation
+                        
+                            fun zoomInOutWithImageChange(imageView: ImageView) {
+                                var isZoomingIn = true
+                        
+                                fun createScaleAnimation(startScale: Float, endScale: Float): ScaleAnimation {
+                                    val scaleAnimation = ScaleAnimation(
+                                        startScale,
+                                        endScale,
+                                        startScale,
+                                        endScale,
+                                        Animation.RELATIVE_TO_SELF,
+                                        0.5f,
+                                        Animation.RELATIVE_TO_SELF,
+                                        0.5f
+                                    )
+                                    scaleAnimation.duration = 500
+                                    scaleAnimation.fillAfter = true
+                        
+                                    return scaleAnimation
+                                }
+                        
+                                fun startAnimation() {
+                                    val scaleAnimation = if (isZoomingIn) {
+                                        createScaleAnimation(1f, 1.2f)
+                                    } else {
+                                        createScaleAnimation(1.2f, 1f)
+                                    }
+                        
+                                    scaleAnimation.setAnimationListener(object : Animation.AnimationListener {
+                                        override fun onAnimationStart(animation: Animation?) {
+                        
+                                        }
+                        
+                                        override fun onAnimationEnd(animation: Animation?) {
+                                            isZoomingIn = !isZoomingIn
+                                            if (!isZoomingIn) {
+                                                imageIndex = (imageIndex + 1) % imageList.size // Cycle through images
+                                                imageView.setImageResource(imageList[imageIndex])
+                                            }
+                                            startAnimation() // Start the next animation
+                                        }
+                        
+                                        override fun onAnimationRepeat(animation: Animation?) {}
+                                    })
+                                    imageView.startAnimation(scaleAnimation)
+                                }
+                        
+                                startAnimation()
+                            }
+
+
+                            
+                            
 // Make a eassy way to make a bundle
 
             org.gradle.jvmargs=-Xmx4g -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
@@ -1547,7 +1601,12 @@
                                                           it.product.price.formatted,
                                                           it.product.price.amountMicros,
                                                           it.product.period.toString(),
-                                                          it
+                                                          it,
+                                                           FreeTrils(
+                                                    freeTrial?.value,
+                                                    freeTrial?.unit.toString(),
+                                                    freeTrial?.iso8601.toString()
+                                                )
                                                       )
                                                   )
                                               }
@@ -1569,7 +1628,12 @@
                                                       it.product.price.formatted,
                                                       it.product.price.amountMicros,
                                                       it.product.period.toString(),
-                                                      it
+                                                      it,
+                                                       FreeTrils(
+                                                    freeTrial?.value,
+                                                    freeTrial?.unit.toString(),
+                                                    freeTrial?.iso8601.toString()
+                                                )
                                                   )
                                               )
                                           }
@@ -1857,12 +1921,23 @@
             
                        --- For Plan Subscription ----
                        
-                       SubscriptionSetter.makeMySubs(
-                            this@NewForYearSubAct, MyPackageType.WEEK
-                        ) { storeTransaction, customerInfo ->
-                        }
-            
-            
+                      SubscriptionSetter.makeMySubs(
+                this@NewForYearSubAct, MyPackageType.WEEK
+            ) { storeTransaction, customerInfo ->
+                isSubscribeFun(this@NewForYearSubAct, true)
+                ("onSuccess WEEK").log("onRevenueCatPurchased")
+            }
+
+              SubscriptionSetter.makeMyProduct(
+                    this@NewForYearSubAct, MyPackageType.LIFETIME
+                ) { storeTransaction, customerInfo ->
+
+                    ("onSuccess LifeTime").log("onRevenueCatPurchased")
+
+                    isSubscribeFun(this@NewForYearSubAct, true)
+
+                }
+                
                             purchaseListener.postValue(false)
             
                     purchaseListener.observe(this@NewForYearSubAct) { purchase ->
@@ -1880,34 +1955,16 @@
             
                     ---- Live All Produt Detail 
             
-                                      SubscriptionSetter.liveMyInAppProducts.observe(this@NewForYearSubAct) { billingInAppProduct ->
-                                        billingInAppProduct?.let { productsList ->
-                        
-                                            if (!NetworkHelper.isOnline(this@NewForYearSubAct)) return@observe
-                        
-                                            val lifetime =
-                                                productsList.find { it.packageType == MyPackageType.LIFETIME && it.productType == BillingClient.ProductType.INAPP }
-                                            lifetime?.let {
-                                                ("Sucsess INAPP Data: ${it.toGson()}").log("FATZ")
-                                                bind.lifetimebtn.visibility = View.VISIBLE
-                                                bind.lifetimepriceid.text = lifetime?.price
-                        
-                                                if (!NetworkHelper.isOnline(this@NewForYearSubAct)) {
-                                                    bind.lifetimepriceid.text = "₹2,000/-"
-                                                }
-                        
-                        //                        bind.lifetimetitalid.text = lifetime?.title
-                        
-                        //                        bind.lifetimetitalid.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-                        //                        bind.lifetimetitalid.setSingleLine(true);
-                        //                        bind.lifetimetitalid.setMarqueeRepeatLimit(-1); // -1 for infinite loop
-                        //                        bind.lifetimetitalid.setSelected(true); // Required for the marquee effect to work
-                        
-                        //                       bind.tvpurid.text = lifetime?.description
-                        //                       bind.tvpurid.text = "Lifetime Purchase"
-                                            }
+                         val plan =
+                                            RevenueCatHelper.revenueCatDataList.find { it.packageType == PackageType.SIX_MONTH }
+                                        if (plan?.freeTrial?.period != null) {
+                                            ("Free Trial ANNUAL").log("onRevenueCatPurchased")
+                                            bind.startfreetrybtn.text = getString(R.string.start_free_trial)
+                                        } else {
+                                            bind.startfreetrybtn.text = getString(R.string.continue_name)
+                                            ("NON Trial ANNUAL").log("onRevenueCatPurchased")
                                         }
-                                    }
+            
             
             
                                     -------- Live Package Products Details. 
@@ -1928,6 +1985,20 @@
                                                         val sixPlan =
                                                             productsList.find { it.packageType == MyPackageType.SIX_MONTH }
                         
+                                                        val lifetime =
+                                                            productsList.find { it.packageType == MyPackageType.LIFETIME && it.productType == BillingClient.ProductType.INAPP }
+                        
+                                                        lifetime?.let {
+                                                            ("Sucsess INAPP Data: ${it.toGson()}").log("FATZ")
+                                                            bind.lifetimebtn.visibility = View.VISIBLE
+                                                            bind.lifetimepriceid.text =
+                                                                removeTrailingZeros(lifetime?.price!!)
+                        
+                                                            if (!isOnline(this@NewForYearSubAct)) {
+                                                                bind.lifetimepriceid.text = "₹2,000"
+                                                            }
+                                                        }
+                                                        
                         //                            bind.txtPurchaseMonth.text = monthPlan?.title
                         //                            bind.priserid.text = weekPlan?.title
                         //                            binding.thirdidyearly.text = sixPlan?.title
@@ -1935,9 +2006,9 @@
                                                         bind.tvPriceyear.text = annualPlan?.price
                                                         bind.priserid.text = weekPlan?.price
                                                         bind.sixmonthjid.text = sixPlan?.price
-                        
-                                                        ("Micro Annual: " + annualPlan!!.amountmicros + " | Week: " + weekPlan!!.amountmicrostoPriceInt + " | 6 Month: " + sixPlan!!.amountmicrostoPriceInt).log(
-                                                            "FATZ"
+                                    
+                                                                    ("Micro Annual: " + annualPlan!!.amountmicros + " | Week: " + weekPlan!!.amountmicrostoPriceInt + " | 6 Month: " +                         sixPlan!!.amountmicrostoPriceInt).log(
+                                                                        "FATZ"
                                                         )
                         
                                                         //todo: Revanue Cat Change divided
@@ -2019,6 +2090,35 @@
                                                 }
                                             }
                                         })
+
+                                                                
+                                    fun removeTrailingZeros(text: String): String {
+                                return if (text.endsWith(".00")) {
+                                    text.substring(0, text.length - 3)
+                                } else {
+                                    text
+                                }
+                            }
+                            
+                              @SuppressLint("StringFormatMatches")
+                                private fun getSubTrial(trial: String): String? {
+                                    //Parse I8
+                                    return try {
+                                        val size = trial.length
+                                        val period = trial.substring(1, size - 1)
+                                        val str = trial.substring(size - 1, size)
+                                        Log.d("TAG", "getSubTrial <------------------>: ${size} $period - $str")
+                                        when (str) {
+                                            "D" -> resources.getString(R.string.days, period)
+                                            "M" -> resources.getString(R.string.months, period)
+                                            "Y" -> resources.getString(R.string.months, (period.toInt() * 12))
+                                            "W" -> resources.getString(R.string._7_day)
+                                            else -> resources.getString(R.string.months, period)
+                                        }
+                                    } catch (e: Exception) {
+                                        resources.getString(R.string._12_months)
+                                    }
+                                }
                                         
 
 

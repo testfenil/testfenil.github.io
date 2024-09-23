@@ -1,6 +1,6 @@
 # testfenil.github.io
 
-// ZoomIn and Zoomout animation
+// ZoomIn and Zoomout animation   
                         
                             fun zoomInOutWithImageChange(imageView: ImageView) {
                                 var isZoomingIn = true

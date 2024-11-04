@@ -1,5 +1,133 @@
 # testfenil.github.io
 
+
+// number logic for practicle intereview
+
+    // activity_main.xml
+    
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:layout_centerInParent="true"
+            android:clipToPadding="false"
+            android:layout_margin="16dp"/>
+    </RelativeLayout>
+
+    // MainActivity
+    
+    class MainActivity : BaseAct<ActivityMainBinding>() {
+        private val GRID_SIZE = MATRIX_ITEM
+        private var adapter: MatrixAdapter? = null
+        private var matrix: ArrayList<Int> = arrayListOf()
+        var MATRIX_ITEM = 5;
+
+        override fun getActivityBinding(inflater: LayoutInflater) =
+            ActivityMainBinding.inflate(layoutInflater)
+    
+        override fun initUI() {
+    
+            matrix = ArrayList()
+            for (i in 0 until GRID_SIZE * GRID_SIZE) {
+                matrix.add(i + 1) // Fill with numbers 1-25
+            }
+              val itemCount = GRID_SIZE * GRID_SIZE
+            val gridSize = sqrt(itemCount.toDouble()).toInt()
+    
+            val layoutManager = GridLayoutManager(this, gridSize)
+            bind.recyclerView.setLayoutManager(layoutManager)
+    
+            // Initialize the adapter
+    
+            // Initialize the adapter
+            adapter = MatrixAdapter(matrix, gridSize)
+            bind.recyclerView.setAdapter(adapter)
+        }
+    }
+
+
+      //  MatrixAdapter.kt adapter
+
+    class MatrixAdapter(private val matrix: List<Int>,var gridSize: Int) :
+        RecyclerView.Adapter<MatrixAdapter.ViewHolder?>() {
+        private var selectedPosition = -1
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view: View =
+                LayoutInflater.from(parent.context).inflate(R.layout.item_cell, parent, false)
+            return ViewHolder(view)
+        }
+    
+        override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
+            holder.textView.text = matrix[position].toString()
+            if (selectedPosition == position || isInHighlightPath(position)) {
+                holder.textView.setBackgroundColor(Color.RED)
+                holder.textView.setTextColor(Color.WHITE)
+            } else {
+                holder.textView.setBackgroundColor(Color.WHITE)
+                holder.textView.setTextColor(Color.BLACK)
+            }
+            holder.itemView.setOnClickListener { v: View? ->
+                selectedPosition = position
+                notifyDataSetChanged()
+            }
+        }
+    
+        override fun getItemCount(): Int {
+            return matrix.size
+        }
+    
+        private fun isInHighlightPath(position: Int): Boolean {
+            if (selectedPosition == -1) return false
+            val selectedRow: Int = selectedPosition / gridSize
+            val selectedCol: Int = selectedPosition % gridSize
+            val row: Int = position / gridSize
+            val col: Int = position % gridSize
+    
+            // Check row, column, and diagonal intersections
+            return row == selectedRow || col == selectedCol || abs((selectedRow - row).toDouble()) == abs(
+                (selectedCol - col).toDouble()
+            )
+        }
+    
+        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            var textView: TextView
+    
+            init {
+                textView = itemView.findViewById<TextView>(R.id.textView)
+            }
+        }
+        private val GRID_SIZE = MATRIX_ITEM
+    }
+
+    //    item_cell.xml
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:gravity="center"
+        android:orientation="vertical">
+    
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="#FFFFFF"
+            android:gravity="center"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+
+
+
 // ZoomIn and Zoomout animation   
                         
                             fun zoomInOutWithImageChange(imageView: ImageView) {

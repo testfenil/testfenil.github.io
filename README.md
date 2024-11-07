@@ -81,6 +81,33 @@
         override fun getItemCount(): Int {
             return matrix.size
         }
+
+      private fun isOnBorder(position: Int): Boolean {
+        val row = position / gridSize
+        val col = position % gridSize
+
+        // Check if the position is in the first or last row or column
+        return row == 0 || row == gridSize - 1 || col == 0 || col == gridSize - 1
+    }
+
+        private fun isEvenRow(position: Int): Boolean {
+        val row = position / MATRIX_SIZE
+        return row % 2 == 0
+    }
+
+    private fun isOddRow(position: Int): Boolean {
+        val row = position / MATRIX_SIZE
+        return row % 2 != 0
+    }
+
+
+    private fun isChessBoardPattern(position: Int): Boolean {
+        val row = position / gridSize
+        val col = position % gridSize
+
+        // Returns true if the cell should be black, false if it should be white
+        return (row + col) % 2 == 0
+    }
     
         private fun isInHighlightPath(position: Int): Boolean {
             if (selectedPosition == -1) return false

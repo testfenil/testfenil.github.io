@@ -20,7 +20,9 @@
     app -> agconnect-services.json
     ADD SHA1 key in huwaie consol 
 
-    classpath 'com.huawei.agconnect:agcp:1.9.1.301'
+        classpath 'com.android.tools.build:gradle:8.0.2'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0'
+        classpath 'com.huawei.agconnect:agcp:1.9.1.301'
      
 
           google()
@@ -30,6 +32,10 @@
         maven { url "https://jitpack.io" }
         maven { url 'https://developer.huawei.com/repo/' }
    
+       gradl.property
+       apmsInstrumentationEnabled=false
+
+       distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-all.zip
 
      compileSdk 34
      
@@ -37,6 +43,7 @@
             id 'com.huawei.agconnect'
         }
 
+       implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0"
         implementation 'com.huawei.agconnect:agconnect-core:1.9.1.301'
         implementation 'com.huawei.hms:ml-computer-vision-segmentation:3.4.0.300'
     // Import the multiclass segmentation model package.

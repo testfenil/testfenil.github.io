@@ -18,6 +18,7 @@
             android:value="false" />
             
     app -> agconnect-services.json
+    ADD SHA1 key in huwaie consol 
 
     classpath 'com.huawei.agconnect:agcp:1.9.1.301'
      

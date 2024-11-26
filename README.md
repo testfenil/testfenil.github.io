@@ -1,5 +1,8 @@
 # testfenil.github.io
 
+
+
+
 // Huwaie lib image background remover huwaie lib
 
        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -118,6 +121,20 @@
 // Translater Api Free language transfer api
 
     https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=de&dt=t&q=Hello World
+       
+       //cheack grammer 
+        @Post 
+        http://147.182.230.132:33230/gram_spell_checker
+        from urlencoded
+        direct_text: "I have no work".
+       
+       //ton changer
+       @GET
+       http://147.182.230.132:51230/generate-reply/?option=1&user_input=Hellow World this are great things
+       
+       //paraPhraseApi
+       @GET
+       http://147.182.230.132:51230/generate-reply/?option=8&user_input=My Name is a best
 
 // Loti Animation video xml lotianimation view
     

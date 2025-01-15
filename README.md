@@ -338,40 +338,72 @@
         
            //DaggerService.kt
                   
-           interface ApiService {
-               @GET("endjson")
-               suspend fun getYourData(): Response<ArrayList<ContactResItem>>
-           }
-           
-           @Module
-           @InstallIn(SingletonComponent::class)
-           object NetworkModule {
-           
-               @Provides
-               @Singleton
-               fun provideRetrofit(): Retrofit {
-                   return Retrofit.Builder()
-                       .baseUrl(BuildConfig.BASE_URL) // Using buildConfigField
-                       .addConverterFactory(GsonConverterFactory.create())
-                       .build()
-               }
-           
-               @Provides
-               @Singleton
-               fun provideApiService(retrofit: Retrofit): ApiService {
-                   return retrofit.create(ApiService::class.java)
-               }
-           }
+                 
+        interface ApiService {
+            @GET("contct.json")
+            suspend fun getYourData(): Response<ArrayList<ContactResModelItem>>
+        }
         
-           //YourRepository.kt
-                  
-           @Singleton
-           class YourRepository @Inject constructor(private val apiService: ApiService) {
-               suspend fun fetchData(): ArrayList<ContactResItem> {
-                   return apiService.getYourData() // Assuming your API returns a Response object
-                       .body() ?: arrayListOf() // Return an empty list if response is null
-               }
-           }
+        @Module
+        @InstallIn(SingletonComponent::class)
+        object NetworkModule {
+        
+            @Provides
+            @Singleton
+            fun provideLoggingInterceptor(): Interceptor {
+                return Interceptor { chain ->
+                    val request: Request = chain.request()
+                    val requestBody = request.body
+                    val buffer = okio.Buffer()
+                    requestBody?.writeTo(buffer)
+                    val requestBodyString = buffer.readUtf8()
+        
+                    println("Request URL: ${request.url}")
+                    println("Request Method: ${request.method}")
+                    println("Request Headers: ${request.headers}")
+                    println("Request Body: $requestBodyString")
+        
+                    chain.proceed(request)
+                }
+            }
+        
+            @Provides
+            @Singleton
+            fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
+                val logger = HttpLoggingInterceptor()
+                logger.level = HttpLoggingInterceptor.Level.BODY
+                return logger
+            }
+        
+            @Provides
+            @Singleton
+            fun provideOkHttpClient(
+                loggingInterceptor: Interceptor,
+                httpLoggingInterceptor: HttpLoggingInterceptor
+            ): OkHttpClient {
+                return OkHttpClient.Builder()
+                    .addInterceptor(loggingInterceptor)
+                    .addInterceptor(httpLoggingInterceptor)
+                    .build()
+            }
+        
+            @Provides
+            @Singleton
+            fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+                return Retrofit.Builder()
+                    .baseUrl(com.example.testvs.BuildConfig.BASE_URL) // Using buildConfigField
+                    .client(okHttpClient)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+            }
+        
+            @Provides
+            @Singleton
+            fun provideApiService(retrofit: Retrofit): ApiService {
+                return retrofit.create(ApiService::class.java)
+            }
+        }
+
            
            @HiltViewModel
            class YourViewModel @Inject constructor(private val repository: YourRepository) : ViewModel() {

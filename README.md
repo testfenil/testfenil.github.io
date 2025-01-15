@@ -1,5 +1,154 @@
 # testfenil.github.io
 
+
+// ColorComination Task Logical Task ColorCombination
+
+    data class ColorItems(var text: String, var color: Int)
+    class ColorComboAct : BaseAct<ActivityColocComboBinding>() {
+        private val GRID_SIZE = 5
+        private var adapter: ColorComboMatrixAdapter? = null
+        private var matrix: ArrayList<ColorItems> = arrayListOf()
+        private var colorlist: ArrayList<Int> = arrayListOf()
+        override fun getActivityBinding(inflater: LayoutInflater) =
+            ActivityColocComboBinding.inflate(layoutInflater)
+    
+        override fun initUI() {
+    
+            bind.btncolorid.onClick {
+                ("Clicik").log()
+                adapter!!.findLargestGroupAndUpdate()
+            }
+    
+            matrix = ArrayList()
+    
+            colorlist.add(Color.RED)
+            colorlist.add(Color.BLACK)
+            colorlist.add(Color.GREEN)
+            colorlist.add(Color.YELLOW)
+            colorlist.add(Color.BLUE)
+    
+            for (i in 0 until GRID_SIZE * GRID_SIZE) {
+                matrix.add(
+                    ColorItems(
+                        (i + 1).toString(),
+                        colorlist[(0 until colorlist.size).random()]
+                    )
+                ) // Fill with numbers 1-25
+            }
+            val itemCount = GRID_SIZE * GRID_SIZE
+            val gridSize = sqrt(itemCount.toDouble()).toInt()
+    
+            val layoutManager = GridLayoutManager(this, gridSize)
+            bind.recyclerView.setLayoutManager(layoutManager)
+    
+            // Initialize the adapter
+    
+            // Initialize the adapter
+            adapter = ColorComboMatrixAdapter(matrix, gridSize)
+            bind.recyclerView.setAdapter(adapter)
+        }
+    }
+
+    -------   ColorComboMatrixAdapter.kt-----
+        
+    class ColorComboMatrixAdapter(
+        private val matrix: ArrayList<ColorItems>,
+        private var gridSize: Int
+    ) : RecyclerView.Adapter<ColorComboMatrixAdapter.ViewHolder>() {
+    
+        private var largestGroup: List<Int> = emptyList()
+    
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view: View =
+                LayoutInflater.from(parent.context).inflate(R.layout.item_cell, parent, false)
+            return ViewHolder(view)
+        }
+    
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = matrix[position]
+            holder.textView.text = item.text
+    
+            // Set the background color based on whether it's in the largest group
+            if (largestGroup.contains(position)) {
+                holder.textView.setBackgroundColor(Color.MAGENTA) // Pink for the largest group
+            } else {
+                holder.textView.setBackgroundColor(item.color)
+            }
+    
+            holder.textView.setTextColor(Color.WHITE)
+        }
+    
+        override fun getItemCount(): Int {
+            return matrix.size
+        }
+    
+        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            var textView: TextView = itemView.findViewById(R.id.textView)
+        }
+    
+        // Function to find the largest group of adjacent same-colored items
+        fun findLargestGroupAndUpdate() {
+            val visited = BooleanArray(matrix.size) { false }
+            var maxGroupSize = 0
+            var maxGroup: List<Int> = emptyList()
+    
+            for (i in matrix.indices) {
+                if (!visited[i]) {
+                    val group = mutableListOf<Int>()
+                    dfs(i, visited, group, matrix[i].color)
+    
+                    if (group.size > maxGroupSize) {
+                        maxGroupSize = group.size
+                        maxGroup = group
+                    }
+                }
+            }
+    
+            largestGroup = maxGroup
+            notifyDataSetChanged()
+        }
+    
+        // Depth First Search (DFS) to find adjacent items of the same color
+        private fun dfs(index: Int, visited: BooleanArray, group: MutableList<Int>, color: Int) {
+            if (index < 0 || index >= matrix.size || visited[index] || matrix[index].color != color) {
+                return
+            }
+    
+            visited[index] = true
+            group.add(index)
+    
+            val row = index / gridSize
+            val col = index % gridSize
+    
+            // Check adjacent cells
+            if (col > 0) dfs(index - 1, visited, group, color) // Left
+            if (col < gridSize - 1) dfs(index + 1, visited, group, color) // Right
+            if (row > 0) dfs(index - gridSize, visited, group, color) // Up
+            if (row < gridSize - 1) dfs(index + gridSize, visited, group, color) // Down
+        }
+
+      ------- item_cell.xml ------
+      
+          <?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:gravity="center"
+        android:orientation="vertical">
+    
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="#FFFFFF"
+            android:gravity="center"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+
 // Custom Popupwindow dialog popup dialog popupmenu
                         
                          //Demo Api api call apidemo demoapi

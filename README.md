@@ -1,5 +1,24 @@
 # testfenil.github.io
 
+// BaseAct
+
+    abstract class BaseAct<T : ViewBinding> : AppCompatActivity() {
+        lateinit var bind: T
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            bind = getActivityBinding(layoutInflater)
+            setContentView(bind.root)
+            initUI()
+        }
+    
+        abstract fun getActivityBinding(inflater: LayoutInflater): T
+    
+        abstract fun initUI()
+    
+        fun <T> T.tos() = Toast.makeText(this@BaseAct, "$this", Toast.LENGTH_SHORT).show()
+        fun <T> T.tosL() = Toast.makeText(this@BaseAct, "$this", Toast.LENGTH_LONG).show()
+    }
+
 
 // ColorComination Task Logical Task ColorCombination
 

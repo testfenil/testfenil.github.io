@@ -311,14 +311,14 @@
                    ActivityDaggerHiltBinding.inflate(layoutInflater)
            
                override fun initUI() {
-                   lifecycleScope.launchWhenStarted {
+                   lifecycleScope.launch {
                        viewModel.data.collectLatest { data ->
                            // Update your UI with the fetched data
            //                contactadapter.submitList(data)
                        }
                    }
            
-                   lifecycleScope.launchWhenStarted {
+                   lifecycleScope.launch {
                        viewModel.error.collectLatest { error ->
                            error?.let {
                                // Display a Toast or update an error view

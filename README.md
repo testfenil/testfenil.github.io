@@ -1,5 +1,15 @@
 # testfenil.github.io
 
+// onbackPress extention updated onbackPress
+
+     fun AppCompatActivity.handleBackPress(onBackPressed: () -> Unit) {
+           onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+               override fun handleOnBackPressed() {
+                   onBackPressed()
+               }
+           })
+       }
+       
 // BaseAct
 
     abstract class BaseAct<T : ViewBinding> : AppCompatActivity() {

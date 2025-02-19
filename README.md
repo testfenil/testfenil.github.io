@@ -1,5 +1,24 @@
 # testfenil.github.io
 
+// Android 15 updates color updates
+     
+       enableEdgeToEdge()
+                binding = ActivityMainBinding.inflate(layoutInflater)
+                setContentView(binding.root)
+                window.statusBarColor = resources.getColor(android.R.color.white, theme)
+        
+                // Set light status bar icons (dark icons)
+                WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+        
+                // Handle system insets
+                ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
+                    val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                    insets
+                }
+     
+                
+
 // onbackPress extention updated onbackPress
 
      fun AppCompatActivity.handleBackPress(onBackPressed: () -> Unit) {

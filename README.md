@@ -1,5 +1,22 @@
 # testfenil.github.io
 
+
+// android 15 issues
+
+     
+     <style name="Base.Theme.GalleryEkta" parent="Theme.Material3.DayNight.NoActionBar">
+         <!-- Customize your light theme here. -->
+         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+     
+         <item name="android:statusBarColor">@android:color/white</item>
+         <item name="android:windowLightStatusBar">true</item>
+         <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+         <item name="android:navigationBarColor">@color/white</item>
+         <item name="android:windowLightNavigationBar">true</item>
+         <item name="cardBackgroundColor">@color/white</item>
+     </style>
+
+
 // FastScrollRecyclerView & fastscroll recycler view
      
        <com.gallery.photos.editpic.Views.FastScrollRecyclerView
@@ -11906,8 +11923,27 @@ implementation "com.android.billingclient:billing-ktx:6.1.0"
                        layoutInflater
                    )
                    bind.navview.addHeaderView(navHeaderMainBinding.root)
-           
-
+                
+     
+       bind.root.addDrawerListener(object : DrawerLayout.DrawerListener {
+                             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                                 // Adjust the X position smoothly as the drawer slides
+                                 bind.includeID.root.translationX = slideOffset * drawerView.width * 1f
+                             }
+             
+                             override fun onDrawerOpened(drawerView: View) {
+                                 // Ensure it's properly positioned when fully opened
+                                 bind.includeID.root.translationX = drawerView.width * 1f
+                             }
+             
+                             override fun onDrawerClosed(drawerView: View) {
+                                 // Move it back when closing
+                                 bind.includeID.root.translationX = 0f
+                             }
+             
+                             override fun onDrawerStateChanged(newState: Int) {}
+                         })
+                         
 // comparas bitmap size 512
 
            Glide.with(this).asBitmap().diskCacheStrategy(DiskCacheStrategy.NONE).load(imageUrl)

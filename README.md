@@ -10044,8 +10044,12 @@ implementation "com.android.billingclient:billing-ktx:6.1.0"
           decorView.systemUiVisibility = uiOptions
 
 // Firebase Getting a SHA1 Key
- 
+
+      //Debug
          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+
+     //Release
+     keytool -list -v -keystore path/to/your/keystore.jks -alias your-key-alias -storepass your-keystore-password
 
 
 // Call Multipart Api Call

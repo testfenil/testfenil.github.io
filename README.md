@@ -177,7 +177,18 @@
 
 // android 15 issues
 
-     
+      ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(
+                top = systemBars.top,
+                bottom = systemBars.bottom,
+                left = systemBars.left,
+                right = systemBars.right
+            )
+            WindowInsetsCompat.CONSUMED
+        }
+
+
      <style name="Base.Theme.GalleryEkta" parent="Theme.Material3.DayNight.NoActionBar">
          <!-- Customize your light theme here. -->
          <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
